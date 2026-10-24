@@ -1,0 +1,115 @@
+@import '@fontsource/dm-sans/400.css';
+@import '@fontsource/dm-sans/500.css';
+@import '@fontsource/dm-sans/600.css';
+@import '@fontsource/dm-sans/700.css';
+@import '@fontsource-variable/fraunces/opsz.css';
+@import 'tailwindcss';
+
+@source '../../storage/framework/views/*.php';
+@source '../js/**/*.tsx';
+
+@theme {
+    --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Fraunces Variable', Georgia, serif;
+
+    --color-cream: #fbf2e4;
+    --color-paper: #fff8ee;
+    --color-field: #fffdf9;
+    --color-sand: #f0e3cf;
+    --color-ink: #482014;
+    --color-muted: #80624e;
+    --color-line: #decbb4;
+    --color-edge: #b59a80;
+    --color-clay: #b14b1c;
+    --color-clay-dark: #93391a;
+    --color-honey: #e7b963;
+    --color-leaf: #2f6b3a;
+    --color-leaf-soft: #e7f0e2;
+    --color-alert: #9a2f1a;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-cream font-sans text-ink antialiased;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--color-clay);
+        outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+    }
+}
+
+@utility btn {
+    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-3 rounded-full px-6 text-[15px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-55;
+}
+
+@layer components {
+    .wrap {
+        @apply mx-auto w-full max-w-6xl px-5 sm:px-6;
+    }
+
+    .eyebrow {
+        @apply text-[11px] font-bold tracking-[0.17em] uppercase;
+    }
+
+
+    .btn-primary {
+        @apply btn bg-clay text-[#fff9ee] hover:bg-clay-dark;
+    }
+
+    .btn-outline {
+        @apply btn border border-ink bg-transparent text-ink hover:bg-ink hover:text-cream;
+    }
+
+    .field-label {
+        @apply block text-sm font-semibold;
+    }
+
+    .field-input {
+        @apply mt-2 block w-full rounded-xl border border-edge bg-field px-4 py-3 text-ink placeholder:text-muted/70 aria-invalid:border-alert;
+    }
+
+    .field-error {
+        @apply mt-1.5 text-sm font-semibold text-alert;
+    }
+
+    .card {
+        @apply rounded-[18px] border border-line bg-paper;
+    }
+
+    .legal-content h2 {
+        @apply mt-10 mb-3 font-display text-2xl font-semibold tracking-tight;
+    }
+
+    .legal-content h3 {
+        @apply mt-6 mb-2 text-lg font-bold;
+    }
+
+    .legal-content p,
+    .legal-content li {
+        @apply text-[15px] leading-[1.85];
+    }
+
+    .legal-content p {
+        @apply mb-3;
+    }
+
+    .legal-content ul {
+        @apply mb-3 list-disc space-y-2 pl-6;
+    }
+
+    .legal-content a {
+        @apply underline underline-offset-3;
+    }
+}
