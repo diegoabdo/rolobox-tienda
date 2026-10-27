@@ -1,8 +1,9 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { BackIcon, LockIcon } from '@/components/Icons';
-import { flavorSummary, money } from '@/lib/format';
-import type { PaymentMethod, Quote, ResolvedCart, Zone } from '@/types';
+import { money, shortMoney } from '@/lib/format';
+import type { CartLine, PaymentMethod, Quote, ResolvedCart, Zone } from '@/types';
 
 type Props = {
     cart: ResolvedCart;
@@ -11,6 +12,7 @@ type Props = {
     dates: { date: string; label: string }[];
     slots: { value: string; label: string }[];
     quotes: Record<PaymentMethod, Quote>;
+    flavorImages: Record<number, string | null>;
     idempotencyKey: string;
     legalVersion: string;
 };
@@ -33,15 +35,58 @@ type CheckoutForm = {
 };
 
 const METHODS: { value: PaymentMethod; title: string; detail: string }[] = [
-    { value: 'bank_transfer', title: 'Transferencia bancaria', detail: 'Desde tu banca en línea. Precio con descuento.' },
+    { value: 'bank_transfer', title: 'Transferencia', detail: 'Desde tu banca en línea, con descuento.' },
     { value: 'card', title: 'Tarjeta', detail: 'Visa o Mastercard, crédito o débito.' },
 ];
+
+/** Opción elegible: fondo de pozo; al elegirla se rellena de caramelo. El foco del teclado se ve en el contorno. */
+const CHOICE =
+    'cursor-pointer transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent';
+const choiceTone = (selected: boolean) => (selected ? 'bg-accent text-ground' : 'bg-well hover:bg-edge');
 
 function FieldError({ message }: { message?: string }) {
     return message ? <p className="field-error">{message}</p> : null;
 }
 
-export default function Checkout({ cart, zones, nationalBlocked, dates, slots, quotes, idempotencyKey }: Props) {
+function lineTitle(line: CartLine): string {
+    return line.type === 'single' ? `Rol de ${line.flavors[0]?.name.toLowerCase()}` : line.name;
+}
+
+/** Los roles de una línea, uno por círculo, como van acomodados en la caja. */
+function LineRolls({ line, images, size }: { line: CartLine; images: Props['flavorImages']; size: 'sm' | 'lg' }) {
+    const rolls = line.flavors.flatMap((f) => Array.from({ length: f.count }, () => f));
+    const circle = size === 'lg' ? 'aspect-square w-full' : 'size-9';
+
+    return (
+        <ul className={size === 'lg' ? 'grid grid-cols-3 gap-2.5' : 'flex flex-wrap gap-1.5'} aria-label={`Roles de ${lineTitle(line)}`}>
+            {rolls.map((flavor, i) => (
+                <li key={`${flavor.id}-${i}`} className={circle}>
+                    {images[flavor.id] ? (
+                        <img src={images[flavor.id] ?? ''} alt={flavor.name} className="size-full rounded-full object-cover" />
+                    ) : (
+                        <span className="flex size-full items-center justify-center rounded-full bg-ground p-1 text-center text-small text-ink" title={flavor.name}>
+                            {size === 'lg' ? flavor.name : ''}
+                        </span>
+                    )}
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function Step({ id, title, intro, children }: { id: string; title: string; intro?: string; children: ReactNode }) {
+    return (
+        <section aria-labelledby={id} className="min-w-0">
+            <h2 id={id} className="display text-[clamp(34px,3.2vw,48px)]">
+                {title}
+            </h2>
+            {intro && <p className="mt-4 max-w-[48ch] text-body">{intro}</p>}
+            <div className="mt-8">{children}</div>
+        </section>
+    );
+}
+
+export default function Checkout({ cart, zones, nationalBlocked, dates, slots, quotes, flavorImages, idempotencyKey }: Props) {
     const hasNational = zones.national.length > 0;
     const firstQuote = quotes.card;
     const initialZone = [...zones.local, ...zones.national].find((z) => z.id === firstQuote.zoneId);
@@ -85,8 +130,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
         refreshQuote('', coupon);
     }
 
-    function chooseZone(value: string) {
-        const zoneId = value ? Number(value) : '';
+    function chooseZone(zoneId: number) {
         form.setData('zone_id', zoneId);
         refreshQuote(zoneId, coupon);
     }
@@ -102,379 +146,420 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
     }
 
     const zoneList = mode === 'local' ? zones.local : zones.national;
+    const shipping = quote.zoneId ? (quote.freeShipping ? 'Gratis' : money(quote.shippingCents)) : 'Elige tu zona';
 
     return (
         <>
-            <Head title="Pagar pedido" />
-            <div className="wrap py-10">
-                <Link href="/carrito" className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-clay">
+            <Head title="Tu pedido" />
+            <div className="wrap pt-6 pb-10">
+                <Link href="/carrito" className="inline-flex min-h-11 items-center gap-2 text-body font-semibold transition-colors hover:text-accent">
                     <BackIcon size={18} /> Volver al carrito
                 </Link>
-                <h1 className="mb-8 font-display text-4xl font-bold tracking-tight">Tu pedido</h1>
 
-                <form onSubmit={submit} noValidate className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
-                    <div className="space-y-10">
-                        <section aria-labelledby="entrega">
-                            <h2 id="entrega" className="mb-4 text-xl font-bold">
-                                ¿Cómo te lo entregamos?
-                            </h2>
-                            {hasNational && (
-                                <div role="radiogroup" aria-label="Tipo de entrega" className="mb-5 grid grid-cols-2 gap-3">
-                                    {(['local', 'national'] as const).map((value) => (
-                                        <button
-                                            key={value}
-                                            type="button"
-                                            role="radio"
-                                            aria-checked={mode === value}
-                                            onClick={() => chooseMode(value)}
-                                            className={`cursor-pointer rounded-2xl border-2 bg-paper p-4 text-left ${mode === value ? 'border-clay' : 'border-line'}`}
-                                        >
-                                            <span className="block font-bold">{value === 'local' ? 'Reparto en Xela' : 'Envío nacional'}</span>
-                                            <span className="mt-1 block text-sm text-muted">
-                                                {value === 'local' ? 'Eliges día y horario' : 'Paquetería con número de guía'}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            {nationalBlocked && (
-                                <p className="mb-5 text-sm text-muted">
-                                    El envío al resto del país está disponible solo para sabores que aguantan el viaje. Tu carrito incluye
-                                    algunos que no.
-                                </p>
-                            )}
+                <form onSubmit={submit} noValidate className="mt-6 grid grid-cols-1 items-start gap-x-16 gap-y-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]">
+                    <div className="min-w-0">
+                        <h1 className="display text-[clamp(52px,6vw,96px)]">Tu pedido</h1>
+                        <p className="mt-6 max-w-[40ch] text-lead leading-snug">Tres preguntas y lo horneamos para el día que elijas.</p>
 
-                            <div className="grid gap-5 sm:grid-cols-2">
-                                <label className="field-label sm:col-span-2">
-                                    {mode === 'local' ? 'Zona de Xela' : 'Destino'}
-                                    <select
-                                        className="field-input"
-                                        value={form.data.zone_id}
-                                        onChange={(e) => chooseZone(e.target.value)}
-                                        aria-invalid={!!errors.zone_id}
-                                    >
-                                        <option value="">Elige una opción</option>
-                                        {zoneList.map((zone) => (
-                                            <option key={zone.id} value={zone.id}>
-                                                {zone.name}
-                                                {mode === 'national' ? `, ${zone.department}` : ''} · envío {money(zone.feeCents)}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <FieldError message={errors.zone_id} />
-                                </label>
-
-                                <label className="field-label sm:col-span-2">
-                                    Dirección
-                                    <input
-                                        className="field-input"
-                                        value={form.data.address}
-                                        onChange={(e) => form.setData('address', e.target.value)}
-                                        autoComplete="street-address"
-                                        maxLength={500}
-                                        aria-invalid={!!errors.address}
-                                        placeholder="Calle, avenida, número de casa"
-                                    />
-                                    <FieldError message={errors.address} />
-                                </label>
-
-                                <label className="field-label sm:col-span-2">
-                                    Referencias (opcional)
-                                    <input
-                                        className="field-input"
-                                        value={form.data.address_reference}
-                                        onChange={(e) => form.setData('address_reference', e.target.value)}
-                                        maxLength={255}
-                                        placeholder="Portón negro, frente a la tienda"
-                                    />
-                                </label>
-                            </div>
-
-                            {mode === 'local' && (
-                                <div className="mt-6 space-y-5">
-                                    <fieldset className="min-w-0">
-                                        <legend className="field-label mb-2">Día de entrega</legend>
-                                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
-                                            {dates.map((d) => (
-                                                <label
-                                                    key={d.date}
-                                                    className={`flex min-h-12 cursor-pointer items-center justify-center rounded-xl border px-3 text-center text-sm font-semibold ${
-                                                        form.data.delivery_date === d.date ? 'border-ink bg-ink text-cream' : 'border-line'
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="delivery_date"
-                                                        value={d.date}
-                                                        className="sr-only"
-                                                        checked={form.data.delivery_date === d.date}
-                                                        onChange={() => form.setData('delivery_date', d.date)}
-                                                    />
-                                                    {d.label}
-                                                </label>
-                                            ))}
-                                        </div>
-                                        <FieldError message={errors.delivery_date} />
-                                    </fieldset>
-
-                                    <fieldset className="min-w-0">
-                                        <legend className="field-label mb-2">Horario</legend>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {slots.map((s) => (
-                                                <label
-                                                    key={s.value}
-                                                    className={`flex min-h-12 cursor-pointer items-center justify-center rounded-xl border px-2 text-center text-sm font-semibold ${
-                                                        form.data.delivery_slot === s.value ? 'border-ink bg-ink text-cream' : 'border-line'
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="delivery_slot"
-                                                        value={s.value}
-                                                        className="sr-only"
-                                                        checked={form.data.delivery_slot === s.value}
-                                                        onChange={() => form.setData('delivery_slot', s.value)}
-                                                    />
-                                                    {s.label}
-                                                </label>
-                                            ))}
-                                        </div>
-                                        <FieldError message={errors.delivery_slot} />
-                                    </fieldset>
-                                </div>
-                            )}
-                        </section>
-
-                        <section aria-labelledby="datos">
-                            <h2 id="datos" className="mb-4 text-xl font-bold">
-                                Tus datos
-                            </h2>
-                            <div className="grid gap-5 sm:grid-cols-2">
-                                <label className="field-label">
-                                    Nombre
-                                    <input
-                                        className="field-input"
-                                        value={form.data.name}
-                                        onChange={(e) => form.setData('name', e.target.value)}
-                                        autoComplete="name"
-                                        maxLength={120}
-                                        aria-invalid={!!errors.name}
-                                    />
-                                    <FieldError message={errors.name} />
-                                </label>
-                                <label className="field-label">
-                                    WhatsApp para avisos del pedido
-                                    <input
-                                        className="field-input"
-                                        type="tel"
-                                        inputMode="tel"
-                                        value={form.data.phone}
-                                        onChange={(e) => form.setData('phone', e.target.value)}
-                                        autoComplete="tel"
-                                        placeholder="5555 5555"
-                                        aria-invalid={!!errors.phone}
-                                    />
-                                    <FieldError message={errors.phone} />
-                                </label>
-                                <label className="field-label">
-                                    Correo (opcional)
-                                    <input
-                                        className="field-input"
-                                        type="email"
-                                        value={form.data.email}
-                                        onChange={(e) => form.setData('email', e.target.value)}
-                                        autoComplete="email"
-                                        aria-invalid={!!errors.email}
-                                    />
-                                    <FieldError message={errors.email} />
-                                </label>
-                                <label className="field-label">
-                                    NIT para la factura
-                                    <input
-                                        className="field-input uppercase"
-                                        value={form.data.nit}
-                                        onChange={(e) => form.setData('nit', e.target.value)}
-                                        placeholder="CF"
-                                        maxLength={20}
-                                        aria-invalid={!!errors.nit}
-                                    />
-                                    <FieldError message={errors.nit} />
-                                </label>
-                                <label className="field-label sm:col-span-2">
-                                    Notas para RoloBox (opcional)
-                                    <textarea
-                                        className="field-input min-h-20 resize-y"
-                                        value={form.data.notes}
-                                        onChange={(e) => form.setData('notes', e.target.value)}
-                                        maxLength={1000}
-                                        placeholder="No escribas datos de tarjeta ni contraseñas."
-                                    />
-                                </label>
-                            </div>
-                        </section>
-
-                        <section aria-labelledby="pago">
-                            <h2 id="pago" className="mb-1 text-xl font-bold">
-                                ¿Cómo vas a pagar?
-                            </h2>
-                            <p className="mb-4 text-sm text-muted">
-                                Los precios publicados son con tarjeta. Pagando con transferencia bancaria tienes descuento.
-                            </p>
-                            <div role="radiogroup" aria-label="Forma de pago" className="grid gap-3 sm:grid-cols-2">
-                                {METHODS.map((method) => {
-                                    const selected = form.data.payment_method === method.value;
-                                    const total = quotes[method.value].totalCents;
-                                    return (
-                                        <button
-                                            key={method.value}
-                                            type="button"
-                                            role="radio"
-                                            aria-checked={selected}
-                                            onClick={() => form.setData('payment_method', method.value)}
-                                            className={`cursor-pointer rounded-2xl border-2 bg-paper p-4 text-left ${selected ? 'border-clay' : 'border-line'}`}
-                                        >
-                                            <span className="flex items-baseline justify-between gap-3">
-                                                <span className="font-bold">{method.title}</span>
-                                                <span className="font-bold">{money(total)}</span>
-                                            </span>
-                                            <span className="mt-1 block text-sm text-muted">{method.detail}</span>
-                                            {method.value === 'bank_transfer' && transferSavings > 0 && (
-                                                <span className="mt-2 inline-block rounded-full bg-leaf px-2.5 py-0.5 text-xs font-bold text-cream">
-                                                    Ahorras {money(transferSavings)}
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <FieldError message={errors.payment_method} />
-                        </section>
-                    </div>
-
-                    <aside className="space-y-5 lg:sticky lg:top-6">
-                        <section className="card p-5" aria-labelledby="resumen">
-                            <h2 id="resumen" className="mb-4 font-bold">
-                                Resumen
-                            </h2>
-                            <ul className="mb-4 space-y-3 border-b border-line pb-4 text-sm">
+                        {/* En el teléfono, la caja va arriba en pequeño; el ticket completo con el pago va al final. */}
+                        <a href="#ticket" className="mt-8 flex items-center gap-4 bg-kraft p-4 text-ground lg:hidden">
+                            <span className="min-w-0 flex-1 space-y-2">
                                 {cart.lines.map((line) => (
-                                    <li key={line.key} className="flex justify-between gap-3">
-                                        <span>
-                                            {line.quantity} × {line.type === 'single' ? `Rol de ${line.flavors[0]?.name.toLowerCase()}` : line.name}
-                                            {line.type === 'box' && <span className="block text-xs text-muted">{flavorSummary(line.flavors)}</span>}
-                                        </span>
-                                        <span className="font-semibold">{money(byTransfer ? line.transferLineTotalCents : line.lineTotalCents)}</span>
-                                    </li>
+                                    <LineRolls key={line.key} line={line} images={flavorImages} size="sm" />
                                 ))}
-                            </ul>
+                            </span>
+                            <span className="text-right">
+                                <span className="block text-small">Total</span>
+                                <span className="display text-[40px] tabular-nums">{shortMoney(quote.totalCents)}</span>
+                            </span>
+                        </a>
 
-                            <label className="field-label" htmlFor="coupon">
-                                Código de promoción
-                            </label>
-                            <div className="mt-2 flex gap-2">
-                                <input
-                                    id="coupon"
-                                    className="min-w-0 flex-1 rounded-xl border border-edge bg-field px-3 py-3 font-bold tracking-[0.08em] uppercase"
-                                    value={coupon}
-                                    onChange={(e) => setCoupon(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            applyCoupon();
-                                        }
-                                    }}
-                                    maxLength={40}
-                                />
-                                <button type="button" onClick={applyCoupon} className="btn-outline min-h-12 rounded-xl px-4" disabled={quoting}>
-                                    Aplicar
-                                </button>
-                            </div>
-                            {quote.promotionError ? (
-                                <p className="field-error">{quote.promotionError}</p>
-                            ) : quote.promotionCode ? (
-                                <p className="mt-1.5 text-sm font-bold text-leaf">Código {quote.promotionCode} aplicado: {quote.promotionDescription}</p>
-                            ) : null}
-                            <FieldError message={errors.promotion_code} />
-
-                            <dl className={`mt-5 space-y-2 text-sm transition-opacity ${quoting ? 'opacity-50' : ''}`} aria-live="polite">
-                                <div className="flex justify-between">
-                                    <dt>Subtotal{byTransfer ? ' con transferencia' : ''}</dt>
-                                    <dd>{money(quote.subtotalCents)}</dd>
-                                </div>
-                                {quote.discountCents > 0 && (
-                                    <div className="flex justify-between text-leaf">
-                                        <dt>Descuento</dt>
-                                        <dd>− {money(quote.discountCents)}</dd>
+                        <div className="mt-20 space-y-24">
+                            <Step id="entrega" title="¿Dónde lo entregamos?" intro="El envío se suma según tu zona. Horneamos para el día y el horario que elijas.">
+                                {hasNational && (
+                                    <div role="radiogroup" aria-label="Tipo de entrega" className="mb-8 grid grid-cols-2 gap-3">
+                                        {(['local', 'national'] as const).map((value) => (
+                                            <button
+                                                key={value}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={mode === value}
+                                                onClick={() => chooseMode(value)}
+                                                className={`p-5 text-left ${CHOICE} ${choiceTone(mode === value)}`}
+                                            >
+                                                <span className="block text-lead font-extrabold tracking-[-0.03em]">
+                                                    {value === 'local' ? 'Reparto en Xela' : 'Envío nacional'}
+                                                </span>
+                                                <span className="mt-1 block text-small">{value === 'local' ? 'Eliges día y horario' : 'Paquetería con número de guía'}</span>
+                                            </button>
+                                        ))}
                                     </div>
                                 )}
-                                <div className="flex justify-between">
-                                    <dt>Envío</dt>
-                                    <dd>{quote.zoneId ? (quote.freeShipping ? 'Gratis' : money(quote.shippingCents)) : 'Elige la zona'}</dd>
+                                {nationalBlocked && (
+                                    <p className="mb-8 max-w-[56ch] bg-surface p-5 text-body">
+                                        Al resto del país enviamos solo sabores que aguantan el viaje, y tu caja incluye algunos que no.
+                                    </p>
+                                )}
+
+                                <fieldset className="min-w-0">
+                                    <legend className="field-label mb-3">{mode === 'local' ? 'Tu zona de Xela' : 'Destino'}</legend>
+                                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                                        {zoneList.map((zone) => {
+                                            const selected = form.data.zone_id === zone.id;
+                                            return (
+                                                <label key={zone.id} className={`flex min-h-16 flex-col justify-center rounded-full px-5 ${CHOICE} ${choiceTone(selected)}`}>
+                                                    <input
+                                                        type="radio"
+                                                        name="zone_id"
+                                                        value={zone.id}
+                                                        className="sr-only"
+                                                        checked={selected}
+                                                        onChange={() => chooseZone(zone.id)}
+                                                    />
+                                                    <span className="truncate text-body font-semibold">
+                                                        {zone.name}
+                                                        {mode === 'national' ? `, ${zone.department}` : ''}
+                                                    </span>
+                                                    <span className="text-small tabular-nums">envío {shortMoney(zone.feeCents)}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                    <FieldError message={errors.zone_id} />
+                                </fieldset>
+
+                                <div className="mt-10 grid gap-5 sm:grid-cols-2">
+                                    <label className="field-label sm:col-span-2">
+                                        Dirección
+                                        <input
+                                            className="field-input"
+                                            value={form.data.address}
+                                            onChange={(e) => form.setData('address', e.target.value)}
+                                            autoComplete="street-address"
+                                            maxLength={500}
+                                            aria-invalid={!!errors.address}
+                                            placeholder="Calle, avenida, número de casa"
+                                        />
+                                        <FieldError message={errors.address} />
+                                    </label>
+                                    <label className="field-label sm:col-span-2">
+                                        Referencias (opcional)
+                                        <input
+                                            className="field-input"
+                                            value={form.data.address_reference}
+                                            onChange={(e) => form.setData('address_reference', e.target.value)}
+                                            maxLength={255}
+                                            placeholder="Portón negro, frente a la tienda"
+                                        />
+                                    </label>
                                 </div>
-                                <div className="flex justify-between border-t border-line pt-3 text-lg font-bold">
-                                    <dt>Total</dt>
-                                    <dd>{money(quote.totalCents)}</dd>
+
+                                {mode === 'local' && (
+                                    <>
+                                        <fieldset className="mt-12 min-w-0">
+                                            <legend className="field-label mb-3">Día de entrega</legend>
+                                            <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-6">
+                                                {dates.map((d) => {
+                                                    const selected = form.data.delivery_date === d.date;
+                                                    const parts = d.label.split(' ');
+                                                    return (
+                                                        <label
+                                                            key={d.date}
+                                                            className={`flex aspect-square flex-col items-center justify-center rounded-full text-center ${CHOICE} ${choiceTone(selected)}`}
+                                                        >
+                                                            <input
+                                                                type="radio"
+                                                                name="delivery_date"
+                                                                value={d.date}
+                                                                className="sr-only"
+                                                                checked={selected}
+                                                                onChange={() => form.setData('delivery_date', d.date)}
+                                                            />
+                                                            <span className="sr-only">{d.label}</span>
+                                                            <span className="text-small" aria-hidden="true">
+                                                                {parts[0]}
+                                                            </span>
+                                                            <span className="text-lead leading-none font-extrabold tabular-nums" aria-hidden="true">
+                                                                {Number(d.date.slice(8))}
+                                                            </span>
+                                                            <span className="text-small" aria-hidden="true">
+                                                                {parts[parts.length - 1]}
+                                                            </span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                            <FieldError message={errors.delivery_date} />
+                                        </fieldset>
+
+                                        <fieldset className="mt-10 min-w-0">
+                                            <legend className="field-label mb-3">Horario</legend>
+                                            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                                                {slots.map((s) => {
+                                                    const selected = form.data.delivery_slot === s.value;
+                                                    return (
+                                                        <label
+                                                            key={s.value}
+                                                            className={`flex min-h-14 items-center justify-center rounded-full px-4 text-body font-semibold ${CHOICE} ${choiceTone(selected)}`}
+                                                        >
+                                                            <input
+                                                                type="radio"
+                                                                name="delivery_slot"
+                                                                value={s.value}
+                                                                className="sr-only"
+                                                                checked={selected}
+                                                                onChange={() => form.setData('delivery_slot', s.value)}
+                                                            />
+                                                            {s.label}
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                            <FieldError message={errors.delivery_slot} />
+                                        </fieldset>
+                                    </>
+                                )}
+                            </Step>
+
+                            <Step id="datos" title="¿A quién avisamos?" intro="Te escribimos por WhatsApp cuando tu pedido cambie de estado.">
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <label className="field-label">
+                                        Nombre
+                                        <input
+                                            className="field-input"
+                                            value={form.data.name}
+                                            onChange={(e) => form.setData('name', e.target.value)}
+                                            autoComplete="name"
+                                            maxLength={120}
+                                            aria-invalid={!!errors.name}
+                                        />
+                                        <FieldError message={errors.name} />
+                                    </label>
+                                    <label className="field-label">
+                                        WhatsApp
+                                        <input
+                                            className="field-input"
+                                            type="tel"
+                                            inputMode="tel"
+                                            value={form.data.phone}
+                                            onChange={(e) => form.setData('phone', e.target.value)}
+                                            autoComplete="tel"
+                                            placeholder="5555 5555"
+                                            aria-invalid={!!errors.phone}
+                                        />
+                                        <FieldError message={errors.phone} />
+                                    </label>
+                                    <label className="field-label">
+                                        Correo (opcional)
+                                        <input
+                                            className="field-input"
+                                            type="email"
+                                            value={form.data.email}
+                                            onChange={(e) => form.setData('email', e.target.value)}
+                                            autoComplete="email"
+                                            aria-invalid={!!errors.email}
+                                        />
+                                        <FieldError message={errors.email} />
+                                    </label>
+                                    <label className="field-label">
+                                        NIT para la factura
+                                        <input
+                                            className="field-input uppercase"
+                                            value={form.data.nit}
+                                            onChange={(e) => form.setData('nit', e.target.value)}
+                                            placeholder="CF"
+                                            maxLength={20}
+                                            aria-invalid={!!errors.nit}
+                                        />
+                                        <FieldError message={errors.nit} />
+                                    </label>
+                                    <label className="field-label sm:col-span-2">
+                                        Notas para Twist & Rolls (opcional)
+                                        <textarea
+                                            className="field-input min-h-24 resize-y"
+                                            value={form.data.notes}
+                                            onChange={(e) => form.setData('notes', e.target.value)}
+                                            maxLength={1000}
+                                            placeholder="No escribas datos de tarjeta ni contraseñas."
+                                        />
+                                    </label>
                                 </div>
-                            </dl>
-                        </section>
+                            </Step>
 
-                        <label className="flex items-start gap-3 text-sm leading-relaxed">
-                            <input
-                                type="checkbox"
-                                className="mt-1 size-5 shrink-0 accent-clay"
-                                checked={form.data.terms}
-                                onChange={(e) => form.setData('terms', e.target.checked)}
-                                aria-invalid={!!errors.terms}
-                            />
-                            <span>
-                                Acepto los{' '}
-                                <a href="/terminos" target="_blank" rel="noopener" className="underline underline-offset-3">
-                                    términos de compra
-                                </a>{' '}
-                                y el{' '}
-                                <a href="/privacidad" target="_blank" rel="noopener" className="underline underline-offset-3">
-                                    aviso de privacidad
-                                </a>
-                                <span className="sr-only"> (se abren en otra pestaña)</span>.
-                            </span>
-                        </label>
-                        <FieldError message={errors.terms} />
+                            <Step id="pago" title="¿Cómo pagas?" intro="Los precios publicados son con tarjeta. Por transferencia bancaria pagas menos.">
+                                <div role="radiogroup" aria-label="Forma de pago" className="grid gap-3 sm:grid-cols-2">
+                                    {METHODS.map((method) => {
+                                        const selected = form.data.payment_method === method.value;
+                                        return (
+                                            <button
+                                                key={method.value}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={selected}
+                                                onClick={() => form.setData('payment_method', method.value)}
+                                                className={`flex min-h-56 flex-col p-6 text-left focus-visible:outline-offset-2 ${CHOICE} ${choiceTone(selected)}`}
+                                            >
+                                                <span className="text-lead font-extrabold tracking-[-0.03em]">{method.title}</span>
+                                                <span className="mt-1 text-body">{method.detail}</span>
+                                                <span className="mt-auto flex flex-wrap items-end justify-between gap-x-4 gap-y-1 pt-8">
+                                                    <span className="display text-[clamp(44px,4vw,64px)] tabular-nums">{shortMoney(quotes[method.value].totalCents)}</span>
+                                                    {method.value === 'bank_transfer' && transferSavings > 0 && (
+                                                        <span className="mb-2 text-body font-semibold">Ahorras {shortMoney(transferSavings)}</span>
+                                                    )}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <FieldError message={errors.payment_method} />
+                            </Step>
+                        </div>
+                    </div>
 
-                        {(errors.cart || errors.payment) && (
-                            <p className="rounded-xl border border-alert/40 bg-[#f8e3dc] p-4 text-sm font-semibold text-alert" role="alert">
-                                {errors.cart ?? errors.payment}
-                            </p>
-                        )}
-                        {form.hasErrors && !errors.cart && !errors.payment && (
-                            <p className="text-sm font-semibold text-alert" role="alert">
-                                Revisa los campos marcados.
-                            </p>
-                        )}
+                    <aside id="ticket" className="min-w-0 scroll-mt-6 lg:sticky lg:top-6" aria-labelledby="ticket-titulo">
+                        <div className="bg-kraft text-ground">
+                            <div className="p-6 sm:p-8">
+                                <h2 id="ticket-titulo" className="display text-[clamp(34px,3.2vw,48px)]">
+                                    {cart.lines.length === 1 && cart.lines[0].type === 'box' ? 'Tu caja' : 'Lo que llevas'}
+                                </h2>
+                                <ul className="mt-6 space-y-6">
+                                    {cart.lines.map((line) => (
+                                        <li key={line.key}>
+                                            {line.type === 'box' && <LineRolls line={line} images={flavorImages} size="lg" />}
+                                            <div className={`flex items-baseline justify-between gap-4 text-body ${line.type === 'box' ? 'mt-4' : ''}`}>
+                                                <span className="flex min-w-0 items-center gap-3 font-semibold">
+                                                    {line.type === 'single' && <LineRolls line={line} images={flavorImages} size="sm" />}
+                                                    <span>
+                                                        {line.quantity > 1 ? `${line.quantity} × ` : ''}
+                                                        {lineTitle(line)}
+                                                    </span>
+                                                </span>
+                                                <span className="font-semibold tabular-nums">
+                                                    {shortMoney(byTransfer ? line.transferLineTotalCents : line.lineTotalCents)}
+                                                </span>
+                                            </div>
+                                            {line.giftMessage && <p className="mt-1 text-small">Tarjeta: “{line.giftMessage}”</p>}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
 
-                        <button type="submit" className="btn-primary w-full justify-between" disabled={form.processing || quoting}>
-                            <span className="flex items-center gap-2.5">
-                                <LockIcon size={18} />
-                                {form.processing ? 'Abriendo el pago…' : byTransfer ? 'Pagar con transferencia' : 'Pagar con tarjeta'}
-                            </span>
-                            <span>{money(quote.totalCents)}</span>
-                        </button>
-                        <p className="text-center text-xs leading-relaxed text-muted">
-                            {byTransfer ? (
-                                <>
-                                    En la página segura del procesador ves los datos para transferir.
-                                    <br />
-                                    Tu pedido se confirma cuando el banco acredita el pago.
-                                </>
-                            ) : (
-                                <>
-                                    Visa · Mastercard. Pagas en la página segura del procesador.
-                                    <br />
-                                    RoloBox nunca recibe los datos de tu tarjeta.
-                                </>
-                            )}
-                        </p>
-                        <p className="rounded-xl border border-line px-4 py-3 text-center text-xs leading-relaxed text-muted">
-                            Horneamos cada pedido por encargo: <strong className="text-ink">no hay reembolsos por cancelación</strong>. Si algo llega mal, lo resolvemos.
+                            <div className="relative flex items-center" aria-hidden="true">
+                                <span className="-ml-4 size-8 shrink-0 rounded-full bg-ground" />
+                                <span className="flex flex-1 justify-evenly">
+                                    {Array.from({ length: 12 }, (_, i) => (
+                                        <span key={i} className="size-2 rounded-full bg-ground" />
+                                    ))}
+                                </span>
+                                <span className="-mr-4 size-8 shrink-0 rounded-full bg-ground" />
+                            </div>
+
+                            <div className="p-6 sm:p-8">
+                                <label className="field-label" htmlFor="coupon">
+                                    Código de promoción
+                                </label>
+                                <div className="mt-2 flex gap-2">
+                                    <input
+                                        id="coupon"
+                                        className="min-h-12 min-w-0 flex-1 rounded-full bg-[#d6b48a] px-5 text-body font-bold tracking-[0.06em] text-ground uppercase focus:outline-3 focus:outline-ground"
+                                        value={coupon}
+                                        onChange={(e) => setCoupon(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                applyCoupon();
+                                            }
+                                        }}
+                                        maxLength={40}
+                                    />
+                                    <button type="button" onClick={applyCoupon} className="btn bg-ground px-5 text-ink hover:bg-surface" disabled={quoting}>
+                                        Aplicar
+                                    </button>
+                                </div>
+                                {quote.promotionError ? (
+                                    <p className="mt-1.5 text-body font-semibold text-[#6a1608]">{quote.promotionError}</p>
+                                ) : quote.promotionCode ? (
+                                    <p className="mt-1.5 text-body font-semibold">
+                                        {quote.promotionCode} aplicado: {quote.promotionDescription}
+                                    </p>
+                                ) : null}
+                                {errors.promotion_code && <p className="mt-1.5 text-body font-semibold text-[#6a1608]">{errors.promotion_code}</p>}
+
+                                <dl className={`mt-8 space-y-2 text-body transition-opacity ${quoting ? 'opacity-50' : ''}`} aria-live="polite">
+                                    <div className="flex justify-between gap-4">
+                                        <dt>Subtotal{byTransfer ? ' con transferencia' : ''}</dt>
+                                        <dd className="tabular-nums">{money(quote.subtotalCents)}</dd>
+                                    </div>
+                                    {quote.discountCents > 0 && (
+                                        <div className="flex justify-between gap-4 font-semibold">
+                                            <dt>Descuento</dt>
+                                            <dd className="tabular-nums">− {money(quote.discountCents)}</dd>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between gap-4">
+                                        <dt>Envío</dt>
+                                        <dd className="tabular-nums">{shipping}</dd>
+                                    </div>
+                                    <div className="flex items-end justify-between gap-4 pt-6">
+                                        <dt className="text-lead font-extrabold tracking-[-0.03em]">Total</dt>
+                                        <dd className="display text-[clamp(64px,6vw,96px)] tabular-nums">{shortMoney(quote.totalCents)}</dd>
+                                    </div>
+                                </dl>
+
+                                <label className="mt-8 flex cursor-pointer items-start gap-3 text-body">
+                                    <input
+                                        type="checkbox"
+                                        className="mt-0.5 size-6 shrink-0 cursor-pointer accent-ground"
+                                        checked={form.data.terms}
+                                        onChange={(e) => form.setData('terms', e.target.checked)}
+                                        aria-invalid={!!errors.terms}
+                                    />
+                                    <span>
+                                        Acepto los{' '}
+                                        <a href="/terminos" target="_blank" rel="noopener" className="font-semibold underline underline-offset-3">
+                                            términos de compra
+                                        </a>{' '}
+                                        y el{' '}
+                                        <a href="/privacidad" target="_blank" rel="noopener" className="font-semibold underline underline-offset-3">
+                                            aviso de privacidad
+                                        </a>
+                                        <span className="sr-only"> (se abren en otra pestaña)</span>.
+                                    </span>
+                                </label>
+                                {errors.terms && <p className="mt-1.5 text-body font-semibold text-[#6a1608]">{errors.terms}</p>}
+
+                                {(errors.cart || errors.payment) && (
+                                    <p className="mt-5 bg-ground p-4 text-body font-semibold text-alert" role="alert">
+                                        {errors.cart ?? errors.payment}
+                                    </p>
+                                )}
+                                {form.hasErrors && !errors.cart && !errors.payment && (
+                                    <p className="mt-5 text-body font-semibold text-[#6a1608]" role="alert">
+                                        Revisa los campos marcados.
+                                    </p>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    className="btn mt-6 min-h-16 w-full justify-between bg-ground px-7 text-lead text-ink hover:bg-surface"
+                                    disabled={form.processing || quoting}
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <LockIcon size={20} />
+                                        {form.processing ? 'Abriendo el pago…' : byTransfer ? 'Pagar con transferencia' : 'Pagar con tarjeta'}
+                                    </span>
+                                    <span className="tabular-nums">{shortMoney(quote.totalCents)}</span>
+                                </button>
+                                <p className="mt-4 text-small">
+                                    {byTransfer
+                                        ? 'En la página segura del procesador ves los datos para transferir. Tu pedido se confirma cuando el banco acredita el pago.'
+                                        : 'Pagas en la página segura del procesador. Twist & Rolls nunca recibe los datos de tu tarjeta.'}
+                                </p>
+                            </div>
+                        </div>
+                        <p className="mt-5 text-small text-muted">
+                            Horneamos cada pedido por encargo: <strong className="text-ink">no hay reembolsos por cancelación</strong>. Si algo llega mal, lo
+                            resolvemos.
                         </p>
                     </aside>
                 </form>

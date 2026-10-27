@@ -26,3 +26,14 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /bootstrap/ssr
+
+# Fotos subidas desde el panel: viven solo en el servidor
+/public/images/catalogo
+
+# Capturas del inspector de diseño
+/.taste-skill
+
+# Skills de Claude: viven en ~/.claude/skills, no en el proyecto
+/.claude/
+/.agents/
+/skills-lock.json

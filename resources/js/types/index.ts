@@ -113,5 +113,5 @@ export type CustomerOrder = {
 export type SharedProps = {
     cartCount: number;
     flash: { status: string | null };
-    contact: { whatsapp: string; email: string };
+    contact: { whatsapp: string; email: string; company: string };
 };

@@ -34,11 +34,11 @@ class RecurrenteGateway implements PaymentGateway
             ? 'rolobox.checkout.transfer_ttl_minutes'
             : 'rolobox.checkout.payment_ttl_minutes'));
 
-        // Se cobra el pedido como un solo concepto con el total ya calculado por RoloBox
+        // Se cobra el pedido como un solo concepto con el total ya calculado por Twist & Rolls
         // (productos - descuento + envío). Así el monto cobrado es exactamente el del pedido.
         $response = $this->send(fn (PendingRequest $http) => $http->post('/checkouts', [
             'items' => [[
-                'name' => "Pedido {$order->reference} · RoloBox",
+                'name' => "Pedido {$order->reference} · Twist & Rolls",
                 'amount_in_cents' => $order->total_cents,
                 'currency' => 'GTQ',
                 'quantity' => 1,

@@ -36,10 +36,10 @@ export default function Pedido({ order, token, canRetryPayment }: Props) {
             <div className="wrap max-w-3xl py-10">
                 {order.isPaid ? (
                     <div className="mb-8 flex flex-col items-center gap-3 text-center">
-                        <span className="flex size-20 items-center justify-center rounded-full bg-leaf text-cream">
+                        <span className="flex size-20 items-center justify-center rounded-full bg-leaf text-ground">
                             <CheckIcon size={38} strokeWidth={2.5} />
                         </span>
-                        <h1 className="font-display text-4xl font-bold tracking-tight">
+                        <h1 className="display text-head">
                             {order.status === 'paid' ? '¡Pago recibido!' : order.statusLabel}
                         </h1>
                         <p className="max-w-md text-muted">
@@ -49,7 +49,7 @@ export default function Pedido({ order, token, canRetryPayment }: Props) {
                     </div>
                 ) : transferPending ? (
                     <div className="mb-8 text-center" aria-live="polite">
-                        <h1 className="mb-3 font-display text-4xl font-bold tracking-tight">Tu transferencia va en camino</h1>
+                        <h1 className="mb-3 display text-head">Tu transferencia va en camino</h1>
                         <p className="mx-auto max-w-md text-muted">
                             Cuando el banco la acredite, tu pedido <strong className="text-ink">{order.reference}</strong> queda confirmado y lo
                             preparamos para la fecha que elegiste. Puedes cerrar esta página y consultarlo después con tu código.
@@ -57,7 +57,7 @@ export default function Pedido({ order, token, canRetryPayment }: Props) {
                     </div>
                 ) : waiting ? (
                     <div className="mb-8 text-center" aria-live="polite">
-                        <h1 className="mb-3 font-display text-4xl font-bold tracking-tight">
+                        <h1 className="mb-3 display text-head">
                             {polls < MAX_POLLS ? 'Confirmando tu pago…' : 'Todavía no vemos el pago'}
                         </h1>
                         <p className="mx-auto max-w-md text-muted">
@@ -67,7 +67,7 @@ export default function Pedido({ order, token, canRetryPayment }: Props) {
                         </p>
                     </div>
                 ) : (
-                    <h1 className="mb-8 text-center font-display text-4xl font-bold tracking-tight">{order.statusLabel}</h1>
+                    <h1 className="mb-8 text-center display text-head">{order.statusLabel}</h1>
                 )}
 
                 {order.isPaid && (
@@ -75,13 +75,13 @@ export default function Pedido({ order, token, canRetryPayment }: Props) {
                         {order.timeline.map((step, i) => (
                             <li key={step.key} className="flex items-center gap-3 sm:flex-col sm:text-center">
                                 <span
-                                    className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                                        step.done ? 'bg-leaf text-cream' : step.current ? 'bg-clay text-[#fff9ee]' : 'border-2 border-line text-muted'
+                                    className={`flex size-8 shrink-0 items-center justify-center rounded-full text-small font-bold ${
+                                        step.done ? 'bg-leaf text-ground' : step.current ? 'bg-accent text-ground' : 'bg-well text-muted'
                                     }`}
                                 >
                                     {step.done ? <CheckIcon size={16} /> : i + 1}
                                 </span>
-                                <span className={`text-sm ${step.done || step.current ? 'font-bold' : 'text-muted'}`}>
+                                <span className={`text-small ${step.done || step.current ? 'font-bold' : 'text-muted'}`}>
                                     {step.label}
                                     {step.current && <span className="sr-only"> (estado actual)</span>}
                                 </span>
@@ -91,7 +91,7 @@ export default function Pedido({ order, token, canRetryPayment }: Props) {
                 )}
 
                 <section className="card mb-6 p-5" aria-label="Detalle del pedido">
-                    <dl className="grid gap-3 text-sm sm:grid-cols-2">
+                    <dl className="grid gap-3 text-small sm:grid-cols-2">
                         <div>
                             <dt className="text-muted">Pedido</dt>
                             <dd className="font-bold tracking-wide">{order.reference}</dd>
@@ -114,20 +114,20 @@ export default function Pedido({ order, token, canRetryPayment }: Props) {
                         </div>
                     </dl>
 
-                    <ul className="my-5 space-y-3 border-y border-line py-4 text-sm">
+                    <ul className="my-5 space-y-3 py-4 text-small">
                         {order.items.map((item, i) => (
                             <li key={i} className="flex justify-between gap-3">
                                 <span>
                                     {item.quantity} × {item.name}
-                                    <span className="block text-xs text-muted">{flavorSummary(item.flavors)}</span>
-                                    {item.giftMessage && <span className="block text-xs text-muted">Tarjeta: “{item.giftMessage}”</span>}
+                                    <span className="block text-small text-muted">{flavorSummary(item.flavors)}</span>
+                                    {item.giftMessage && <span className="block text-small text-muted">Tarjeta: “{item.giftMessage}”</span>}
                                 </span>
                                 <span className="font-semibold">{money(item.lineTotalCents)}</span>
                             </li>
                         ))}
                     </ul>
 
-                    <dl className="space-y-2 text-sm">
+                    <dl className="space-y-2 text-small">
                         <div className="flex justify-between">
                             <dt>Subtotal</dt>
                             <dd>{money(order.subtotalCents)}</dd>
@@ -142,7 +142,7 @@ export default function Pedido({ order, token, canRetryPayment }: Props) {
                             <dt>Envío</dt>
                             <dd>{order.shippingCents === 0 ? 'Gratis' : money(order.shippingCents)}</dd>
                         </div>
-                        <div className="flex justify-between border-t border-line pt-3 text-base font-bold">
+                        <div className="flex justify-between pt-3 text-body font-bold">
                             <dt>Total</dt>
                             <dd>{money(order.totalCents)}</dd>
                         </div>

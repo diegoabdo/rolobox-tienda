@@ -21,17 +21,17 @@ export default function Carrito({ cart }: { cart: ResolvedCart }) {
         <>
             <Head title="Carrito" />
             <div className="wrap max-w-3xl py-10">
-                <h1 className="mb-6 font-display text-4xl font-bold tracking-tight">Tu carrito</h1>
+                <h1 className="mb-6 display text-head">Tu carrito</h1>
 
                 {cart.removed > 0 && (
-                    <p className="mb-5 rounded-xl border border-[#cfab72] bg-[#f4e1bd] p-4 text-sm" role="alert">
+                    <p className="mb-5 bg-well p-4 text-small" role="alert">
                         Quitamos {cart.removed === 1 ? 'un producto que ya no está disponible' : `${cart.removed} productos que ya no están disponibles`}.
                     </p>
                 )}
 
                 {cart.lines.length === 0 ? (
                     <div className="card p-8 text-center">
-                        <p className="mb-5 text-lg">Todavía no agregaste nada.</p>
+                        <p className="mb-5 text-body">Todavía no agregaste nada.</p>
                         <div className="flex flex-wrap justify-center gap-3">
                             <Link href="/armar-caja" className="btn-primary">
                                 Armar una caja
@@ -47,19 +47,19 @@ export default function Carrito({ cart }: { cart: ResolvedCart }) {
                             {cart.lines.map((line) => (
                                 <li key={line.key} className="card flex flex-wrap items-center gap-4 p-4">
                                     {line.image ? (
-                                        <img src={line.image} alt="" className="size-16 rounded-xl object-cover" />
+                                        <img src={line.image} alt="" className="size-16 rounded-full object-cover" />
                                     ) : (
-                                        <div className="size-16 rounded-xl bg-sand" aria-hidden="true" />
+                                        <div className="size-16 rounded-full bg-well" aria-hidden="true" />
                                     )}
                                     <div className="min-w-0 flex-[1_1_200px]">
                                         <p className="font-bold">{line.type === 'single' ? `Rol de ${line.flavors[0]?.name.toLowerCase()}` : line.name}</p>
-                                        {line.type === 'box' && <p className="text-sm text-muted">{flavorSummary(line.flavors)}</p>}
-                                        {line.giftMessage && <p className="mt-1 text-sm text-muted">Tarjeta: “{line.giftMessage}”</p>}
+                                        {line.type === 'box' && <p className="text-small text-muted">{flavorSummary(line.flavors)}</p>}
+                                        {line.giftMessage && <p className="mt-1 text-small text-muted">Tarjeta: “{line.giftMessage}”</p>}
                                         <button
                                             type="button"
                                             onClick={() => remove(line)}
                                             disabled={busy === line.key}
-                                            className="mt-1 min-h-9 cursor-pointer text-sm font-semibold text-clay underline underline-offset-4"
+                                            className="mt-1 min-h-9 cursor-pointer text-small font-semibold text-accent underline underline-offset-4"
                                         >
                                             Quitar
                                         </button>
@@ -77,7 +77,7 @@ export default function Carrito({ cart }: { cart: ResolvedCart }) {
                         </ul>
 
                         <div className="card mt-6 p-5">
-                            <div className="flex justify-between text-lg font-bold">
+                            <div className="flex justify-between text-body font-bold">
                                 <span>Subtotal</span>
                                 <span>{money(cart.subtotalCents)}</span>
                             </div>
@@ -87,7 +87,7 @@ export default function Carrito({ cart }: { cart: ResolvedCart }) {
                                     <span>{money(cart.transferSubtotalCents)}</span>
                                 </div>
                             )}
-                            <p className="mt-1.5 text-sm text-muted">El envío, las promociones y la forma de pago se eligen en el siguiente paso.</p>
+                            <p className="mt-1.5 text-small text-muted">El envío, las promociones y la forma de pago se eligen en el siguiente paso.</p>
                         </div>
 
                         <div className="mt-6 flex flex-wrap justify-between gap-3">

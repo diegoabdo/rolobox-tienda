@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "rolobox/tienda",
     "type": "project",
-    "description": "Tienda en línea de RoloBox: menú, cajas, checkout y pagos con tarjeta.",
+    "description": "Tienda en línea de Twist & Rolls: menú, cajas, checkout y pagos con tarjeta.",
     "keywords": [
         "rolobox",
         "laravel",

@@ -12,7 +12,7 @@ export default function Seguir() {
         <>
             <Head title="Seguir mi pedido" />
             <div className="wrap max-w-lg py-14">
-                <h1 className="mb-3 font-display text-4xl font-bold tracking-tight">Seguir mi pedido</h1>
+                <h1 className="mb-3 display text-head">Seguir mi pedido</h1>
                 <p className="mb-8 text-muted">Escribe el código que recibiste al pagar y el WhatsApp que usaste en el pedido.</p>
                 <form onSubmit={submit} className="card space-y-5 p-6" noValidate>
                     <label className="field-label">

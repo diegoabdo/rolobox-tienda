@@ -45,7 +45,7 @@ return new class extends Migration
             $table->string('legal_version', 40);
             $table->timestamp('accepted_at');
 
-            // Conservación de datos (misma política que la versión anterior de RoloBox).
+            // Conservación de datos (misma política que la versión anterior de Twist & Rolls).
             $table->char('record_key', 32)->unique();
             $table->timestamp('last_contact_at');
             $table->timestamp('closed_at')->nullable();

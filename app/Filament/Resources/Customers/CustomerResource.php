@@ -10,8 +10,8 @@ use App\Models\Customer;
 use App\Support\Phone;
 use BackedEnum;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -40,9 +40,9 @@ class CustomerResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedUsers;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static string | UnitEnum | null $navigationGroup = 'Pedidos';
+    protected static string|UnitEnum|null $navigationGroup = 'Pedidos';
 
     protected static ?int $navigationSort = 2;
 
@@ -81,7 +81,7 @@ class CustomerResource extends Resource
                             ->maxLength(160),
                         Textarea::make('notes')
                             ->label('Notas internas')
-                            ->helperText('Solo las ve el equipo de RoloBox. Ej.: sabores favoritos, cómo prefiere la entrega.')
+                            ->helperText('Solo las ve el equipo de Twist & Rolls. Ej.: sabores favoritos, cómo prefiere la entrega.')
                             ->rows(3)
                             ->columnSpanFull(),
                     ]),
