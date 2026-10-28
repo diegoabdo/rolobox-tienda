@@ -49,16 +49,16 @@ function FieldError({ message }: { message?: string }) {
 }
 
 function lineTitle(line: CartLine): string {
-    return line.type === 'single' ? `Rol de ${line.flavors[0]?.name.toLowerCase()}` : line.name;
+    return line.label;
 }
 
-/** Los roles de una línea, uno por círculo, como van acomodados en la caja. */
+/** Las piezas de una línea, una por círculo, como van acomodadas en la caja. */
 function LineRolls({ line, images, size }: { line: CartLine; images: Props['flavorImages']; size: 'sm' | 'lg' }) {
     const rolls = line.flavors.flatMap((f) => Array.from({ length: f.count }, () => f));
     const circle = size === 'lg' ? 'aspect-square w-full' : 'size-9';
 
     return (
-        <ul className={size === 'lg' ? 'grid grid-cols-3 gap-2.5' : 'flex flex-wrap gap-1.5'} aria-label={`Roles de ${lineTitle(line)}`}>
+        <ul className={size === 'lg' ? 'grid grid-cols-3 gap-2.5' : 'flex flex-wrap gap-1.5'} aria-label={`Piezas de ${lineTitle(line)}`}>
             {rolls.map((flavor, i) => (
                 <li key={`${flavor.id}-${i}`} className={circle}>
                     {images[flavor.id] ? (
@@ -402,7 +402,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                                                 <span className="text-lead font-extrabold tracking-[-0.03em]">{method.title}</span>
                                                 <span className="mt-1 text-body">{method.detail}</span>
                                                 <span className="mt-auto flex flex-wrap items-end justify-between gap-x-4 gap-y-1 pt-8">
-                                                    <span className="display text-[clamp(44px,4vw,64px)] tabular-nums">{shortMoney(quotes[method.value].totalCents)}</span>
+                                                    <span className="display text-[clamp(32px,3vw,44px)] tabular-nums">{shortMoney(quotes[method.value].totalCents)}</span>
                                                     {method.value === 'bank_transfer' && transferSavings > 0 && (
                                                         <span className="mb-2 text-body font-semibold">Ahorras {shortMoney(transferSavings)}</span>
                                                     )}
@@ -502,7 +502,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                                     </div>
                                     <div className="flex items-end justify-between gap-4 pt-6">
                                         <dt className="text-lead font-extrabold tracking-[-0.03em]">Total</dt>
-                                        <dd className="display text-[clamp(64px,6vw,96px)] tabular-nums">{shortMoney(quote.totalCents)}</dd>
+                                        <dd className="display text-[clamp(44px,4vw,64px)] tabular-nums">{shortMoney(quote.totalCents)}</dd>
                                     </div>
                                 </dl>
 

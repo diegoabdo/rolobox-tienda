@@ -64,7 +64,7 @@ class InPersonSale
         // Si se registra el mismo día, se usa la hora actual; si es un día anterior, el mediodía de ese día.
         $paidAt = $soldOn->isSameDay($today) ? now() : $soldOn->setTime(12, 0)->utc();
 
-        return DB::transaction(function () use ($data, $userId, $method, $lines, $subtotal, $discount, $total, $customer, $soldOn, $paidAt) {
+        return DB::transaction(function () use ($data, $method, $lines, $subtotal, $discount, $total, $customer, $soldOn, $paidAt) {
             $order = Order::create([
                 'idempotency_key' => (string) Str::uuid(),
                 'customer_id' => $customer?->id,
@@ -147,18 +147,23 @@ class InPersonSale
                 if (! $flavor || $count < 1) {
                     throw ValidationException::withMessages(["items.{$i}" => "Elige los sabores de «{$product->name}»."]);
                 }
+                if (! $product->accepts($flavor)) {
+                    throw ValidationException::withMessages(["items.{$i}" => "«{$flavor->name}» no se puede vender con «{$product->name}»."]);
+                }
                 $lineFlavors[] = ['id' => $flavor->id, 'name' => $flavor->name, 'count' => $count];
             }
 
             $rolls = array_sum(array_column($lineFlavors, 'count'));
             if ($product->isBox() && $rolls !== (int) $product->box_size) {
-                throw ValidationException::withMessages(["items.{$i}" => "La «{$product->name}» lleva {$product->box_size} roles y elegiste {$rolls}."]);
+                throw ValidationException::withMessages(["items.{$i}" => "«{$product->name}» lleva {$product->box_size} piezas y elegiste {$rolls}."]);
             }
             if (! $product->isBox() && $rolls !== 1) {
                 throw ValidationException::withMessages(["items.{$i}" => "Elige el sabor del «{$product->name}»."]);
             }
 
-            $unit = $product->priceFor($method);
+            // Un producto suelto suma el precio extra de su sabor.
+            $extra = $product->isBox() ? 0 : (int) ($flavors->get(array_key_first($chosen))?->extra_cents ?? 0);
+            $unit = $product->priceFor($method) + $extra;
             $lines[] = [
                 'product_id' => $product->id,
                 'product_name' => $product->name,

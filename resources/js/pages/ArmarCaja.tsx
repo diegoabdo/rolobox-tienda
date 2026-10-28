@@ -2,12 +2,15 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import { BackIcon } from '@/components/Icons';
 import { QuantityStepper } from '@/components/QuantityStepper';
-import { money } from '@/lib/format';
-import type { Flavor, Product } from '@/types';
+import { boxAccepts } from '@/lib/catalog';
+import { money, shortMoney } from '@/lib/format';
+import type { Category, Flavor, Product } from '@/types';
 
 type Props = {
-    box: Product;
+    categories: Category[];
     flavors: Flavor[];
+    boxes: Product[];
+    selectedBox: string;
     preselect: string | null;
 };
 
@@ -19,19 +22,23 @@ type BoxForm = {
     go_to_cart: boolean;
 };
 
-/** Cuántos roles de cada sabor hay en la caja, en la forma que espera el carrito. */
+/** Cuántas piezas de cada sabor hay en la caja, en la forma que espera el carrito. */
 function countPicks(picks: number[]): Record<string, number> {
     return picks.reduce<Record<string, number>>((acc, id) => ({ ...acc, [id]: (acc[id] ?? 0) + 1 }), {});
 }
 
-export default function ArmarCaja({ box, flavors, preselect }: Props) {
+export default function ArmarCaja({ categories, flavors, boxes, selectedBox, preselect }: Props) {
+    const [box, setBox] = useState<Product>(boxes.find((b) => b.slug === selectedBox) ?? boxes[0]);
     const size = box.boxSize ?? 6;
+
     const initialPicks = useMemo(() => {
         const chosen = flavors.find((f) => f.slug === preselect);
-        return chosen ? [chosen.id] : [];
-    }, [flavors, preselect]);
+        return chosen && boxAccepts(box, chosen) ? [chosen.id] : [];
+        // Solo al abrir la página: después mandan los botones.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    /** Sabores en el orden en que se agregaron, para que cada rol nuevo ocupe el siguiente espacio sin mover los demás. */
+    /** Sabores en el orden en que se agregaron, para que cada pieza nueva ocupe el siguiente espacio sin mover las demás. */
     const [picks, setPicks] = useState<number[]>(initialPicks);
 
     const form = useForm<BoxForm>({
@@ -42,16 +49,33 @@ export default function ArmarCaja({ box, flavors, preselect }: Props) {
         go_to_cart: true,
     });
 
+    const available = flavors.filter((f) => boxAccepts(box, f));
     const total = picks.length;
     const remaining = size - total;
     const slots = picks.map((id) => flavors.find((f) => f.id === id)).filter((f): f is Flavor => !!f);
+    const columns = size <= 4 ? 2 : size <= 9 ? 3 : 4;
+
+    function update(next: number[], nextBox: Product = box) {
+        setPicks(next);
+        form.setData((data) => ({ ...data, product_id: nextBox.id, flavors: countPicks(next) }));
+    }
+
+    function chooseBox(next: Product) {
+        if (next.id === box.id) return;
+        setBox(next);
+        // Se conservan los sabores que la nueva caja también acepta, hasta que quepan.
+        const nextSize = next.boxSize ?? 6;
+        const kept = picks.filter((id) => {
+            const flavor = flavors.find((f) => f.id === id);
+            return flavor && boxAccepts(next, flavor);
+        });
+        update(kept.slice(0, nextSize), next);
+    }
 
     function setCount(id: number, value: number) {
         const count = picks.filter((pick) => pick === id).length;
         const last = picks.lastIndexOf(id);
-        const next = value > count ? [...picks, id] : last === -1 ? picks : picks.filter((_, i) => i !== last);
-        setPicks(next);
-        form.setData('flavors', countPicks(next));
+        update(value > count ? [...picks, id] : last === -1 ? picks : picks.filter((_, i) => i !== last));
     }
 
     function submit(e: React.FormEvent) {
@@ -61,6 +85,11 @@ export default function ArmarCaja({ box, flavors, preselect }: Props) {
 
     const errors = form.errors as Partial<Record<keyof BoxForm | 'product', string>>;
     const flavorError = errors.flavors ?? errors.product;
+
+    // Una caja mixta agrupa los sabores por categoría.
+    const groups = box.mixed
+        ? categories.map((category) => ({ category, items: available.filter((f) => f.categoryId === category.id) })).filter((g) => g.items.length > 0)
+        : [{ category: null, items: available }];
 
     return (
         <>
@@ -72,47 +101,84 @@ export default function ArmarCaja({ box, flavors, preselect }: Props) {
 
                 <form onSubmit={submit} className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
                     <div>
-                        <h1 className="mb-2 display text-head">Arma tu caja</h1>
-                        <p className="mb-8 text-muted">
-                            {box.name} · elige {size} roles · {money(box.priceCents)}
+                        <h1 className="mb-6 display text-head">Arma tu caja</h1>
+
+                        {boxes.length > 1 && (
+                            <div role="radiogroup" aria-label="Tipo de caja" className="mb-8 flex flex-wrap gap-2">
+                                {boxes.map((option) => {
+                                    const selected = option.id === box.id;
+                                    return (
+                                        <button
+                                            key={option.id}
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={selected}
+                                            onClick={() => chooseBox(option)}
+                                            className={`min-h-12 cursor-pointer rounded-full px-6 text-body font-semibold transition-colors ${
+                                                selected ? 'bg-accent text-ground' : 'bg-well hover:bg-edge'
+                                            }`}
+                                        >
+                                            {option.name} · {shortMoney(option.priceCents)}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <p className="mb-8 text-body">
+                            {box.name} · elige {size} piezas · {money(box.priceCents)}
                             {box.transferPriceCents < box.priceCents && (
                                 <span className="font-semibold text-leaf"> · {money(box.transferPriceCents)} con transferencia</span>
                             )}
+                            {box.description && <span className="mt-1 block text-muted">{box.description}</span>}
                         </p>
 
                         <fieldset>
                             <legend className="sr-only">Sabores de la caja</legend>
-                            <ul className="space-y-3">
-                                {flavors.map((flavor) => {
-                                    const count = form.data.flavors[flavor.id] ?? 0;
-                                    return (
-                                        <li key={flavor.id} className="card flex items-center gap-4 p-3 pr-4">
-                                            {flavor.image ? (
-                                                <img src={flavor.image} alt="" className="size-16 shrink-0 rounded-full object-cover" />
-                                            ) : (
-                                                <div className="size-16 shrink-0 rounded-full bg-well" aria-hidden="true" />
-                                            )}
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-lead font-extrabold tracking-[-0.03em]">{flavor.name}</p>
-                                                <p className="text-body">{flavor.description}</p>
-                                            </div>
-                                            <QuantityStepper
-                                                value={count}
-                                                onChange={(v) => setCount(flavor.id, v)}
-                                                max={size}
-                                                disableIncrease={remaining <= 0}
-                                                label={flavor.name}
-                                            />
-                                        </li>
-                                    );
-                                })}
-                            </ul>
+                            {available.length === 0 && <p className="bg-surface p-6 text-body">Esta caja todavía no tiene sabores disponibles.</p>}
+                            <div className="space-y-10">
+                                {groups.map((group) => (
+                                    <div key={group.category?.id ?? 'todos'}>
+                                        {group.category && <h2 className="mb-4 text-lead font-extrabold tracking-[-0.03em]">{group.category.name}</h2>}
+                                        <ul className="space-y-3">
+                                            {group.items.map((flavor) => {
+                                                const count = picks.filter((id) => id === flavor.id).length;
+                                                return (
+                                                    <li key={flavor.id} className="card flex items-center gap-4 p-3 pr-4">
+                                                        {flavor.image ? (
+                                                            <img src={flavor.image} alt="" className="size-16 shrink-0 rounded-full object-cover" />
+                                                        ) : (
+                                                            <span
+                                                                className="flex size-16 shrink-0 items-center justify-center rounded-full bg-kraft text-lead font-extrabold text-ground"
+                                                                aria-hidden="true"
+                                                            >
+                                                                {flavor.name.charAt(0)}
+                                                            </span>
+                                                        )}
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-lead font-extrabold tracking-[-0.03em]">{flavor.name}</p>
+                                                            <p className="text-body">{flavor.description}</p>
+                                                        </div>
+                                                        <QuantityStepper
+                                                            value={count}
+                                                            onChange={(v) => setCount(flavor.id, v)}
+                                                            max={size}
+                                                            disableIncrease={remaining <= 0}
+                                                            label={flavor.name}
+                                                        />
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
                         </fieldset>
                     </div>
 
                     <aside className="lg:sticky lg:top-6">
                         <div className="bg-kraft p-4">
-                            <ul className="grid grid-cols-3 gap-2" aria-label="Tu caja">
+                            <ul className="grid gap-2" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }} aria-label="Tu caja">
                                 {Array.from({ length: size }, (_, i) => {
                                     const flavor = slots[i];
                                     return (

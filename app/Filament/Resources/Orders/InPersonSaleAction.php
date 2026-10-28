@@ -6,7 +6,6 @@ use App\Enums\PaymentMethod;
 use App\Enums\ProductType;
 use App\Filament\Support\Quetzales;
 use App\Models\Customer;
-use App\Models\Flavor;
 use App\Models\Product;
 use App\Services\InPersonSale;
 use Carbon\CarbonImmutable;
@@ -14,8 +13,8 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -113,11 +112,11 @@ class InPersonSaleAction
                             ->required(),
                         Select::make('flavor_id')
                             ->label('Sabor')
-                            ->options(fn (): array => Flavor::orderBy('sort_order')->pluck('name', 'id')->all())
+                            ->options(fn (Get $get): array => Product::find($get('product_id'))?->acceptedFlavors()->pluck('name', 'id')->all() ?? [])
                             ->visible(fn (Get $get): bool => $productType($get) === ProductType::Single->value)
                             ->required(fn (Get $get): bool => $productType($get) === ProductType::Single->value),
                         Repeater::make('flavors')
-                            ->label(fn (Get $get): string => 'Sabores de la caja ('.(Product::find($get('product_id'))?->box_size ?? 6).' roles)')
+                            ->label(fn (Get $get): string => 'Sabores de la caja ('.(Product::find($get('product_id'))?->box_size ?? 6).' piezas)')
                             ->addActionLabel('Agregar sabor')
                             ->columns(2)
                             ->columnSpanFull()
@@ -126,10 +125,10 @@ class InPersonSaleAction
                             ->schema([
                                 Select::make('flavor_id')
                                     ->label('Sabor')
-                                    ->options(fn (): array => Flavor::orderBy('sort_order')->pluck('name', 'id')->all())
+                                    ->options(fn (Get $get): array => Product::find($get('../../product_id') ?? $get('product_id'))?->acceptedFlavors()->pluck('name', 'id')->all() ?? [])
                                     ->required(),
                                 TextInput::make('count')
-                                    ->label('Roles')
+                                    ->label('Piezas')
                                     ->numeric()
                                     ->integer()
                                     ->minValue(1)

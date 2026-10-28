@@ -1,6 +1,6 @@
 # Twist & Rolls · Tienda en línea
 
-Tienda de roles de canela por encargo en Quetzaltenango (Xela). Los clientes piden roles sueltos desde el menú o arman una caja de seis, pagan con tarjeta o transferencia en la página segura de Recurrente y siguen su pedido con un código RB. El negocio lo administra desde un panel interno.
+Panadería artesanal por encargo en Quetzaltenango (Xela): rolls de canela, croissants, focaccias, trenzas y lo que se agregue. Los clientes piden suelto desde el menú o arman una caja (de una categoría o mixta), pagan con tarjeta o transferencia en la página segura de Recurrente y siguen su pedido con un código RB. El negocio lo administra desde un panel interno.
 
 Twist & Rolls es una marca de **Unique**. Contacto para pedidos y consultas: **lorenaestrada@hotmail.com**.
 
@@ -12,8 +12,8 @@ Para publicar la tienda en internet, sigue [DESPLIEGUE.md](DESPLIEGUE.md).
 
 **Tienda** (`resources/js/pages/`)
 
-- **Inicio:** menú con los seis sabores para pedir roles sueltos, precios de caja y rol, cómo funciona, zonas de reparto en Xela con sus tarifas, búsqueda de pedido y preguntas frecuentes.
-- **Arma tu caja:** se eligen seis roles y la caja se llena en el orden elegido. Admite un mensaje para la tarjeta de regalo. Desde el menú, «Ponlo en una caja» abre esta página con el sabor ya puesto.
+- **Inicio:** las categorías como círculos, el menú por categorías (con presentaciones como trenza completa, porción o pequeña), las cajas, cómo funciona, zonas de reparto en Xela con sus tarifas, búsqueda de pedido y preguntas frecuentes.
+- **Arma tu caja:** se elige el tipo de caja (roles, croissants, mixta…), se eligen las piezas y la caja se llena en el orden elegido. Admite un mensaje para la tarjeta de regalo. Desde el menú, «Ponlo en una caja» abre esta página con el sabor ya puesto.
 - **Carrito y pago («Tu pedido»):** zona, dirección, día y horario de entrega, datos de contacto, cupón y forma de pago (tarjeta o transferencia, con su total cada una). El resumen muestra los roles elegidos.
 - **Seguir mi pedido:** con el código RB y el WhatsApp del pedido.
 - **Términos y privacidad:** en `resources/legal/`, con el nombre de la empresa y el correo tomados del `.env`.
@@ -30,6 +30,21 @@ Para publicar la tienda en internet, sigue [DESPLIEGUE.md](DESPLIEGUE.md).
 - No cuenta bots, visitas con sesión iniciada en el admin, recargas internas del checkout ni precargas.
 - En el dashboard: visitantes de hoy, de 7 y de 30 días, porcentaje que compra, recorrido hasta pagar, páginas más vistas y de dónde llegan.
 - Las visitas de más de un año se borran solas con `model:prune`, programado a diario en `routes/console.php`.
+
+## Cómo se arma el catálogo (Panel → Catálogo)
+
+Tres piezas, de lo general a lo particular:
+
+1. **Categorías:** las líneas de la panadería (Rolls de canela, Croissants, Focaccias, Trenzas…). Cada una es una sección del menú y un círculo en la portada. Sin foto se muestra un círculo de color con su nombre.
+2. **Sabores:** lo que se puede pedir dentro de una categoría («Almendra» en Croissants, «Queso» en Trenzas). Tienen tres interruptores que se cambian directo en la tabla:
+   - **Activo:** se puede pedir en la tienda.
+   - **En su caja:** puede ir en la caja de su categoría (ej.: caja de croissants).
+   - **En caja mixta:** puede mezclarse con otras categorías en una caja mixta.
+
+   Más un **precio extra** opcional (ej.: croissant de almendra +Q3) y su costo.
+3. **Productos:** cómo se vende. **Suelto** es una presentación con precio («Croissant», «Trenza completa», «Porción de trenza», «Trenza pequeña»); el cliente elige presentación y sabor. **Caja** lleva N piezas y puede ser **de una sola categoría** (solo sabores de su categoría marcados «En su caja») o **mixta** (los sabores marcados «En caja mixta», de cualquier categoría).
+
+Precio de una pieza suelta = precio del producto + extra del sabor. Una caja tiene precio fijo. Para ocultar algo se desactiva; no se borra, para no romper pedidos viejos.
 
 ## Requisitos
 
@@ -157,5 +172,6 @@ En el servidor también deben correr:
 - **Textos legales:** están como borrador (`ROLOBOX_LEGAL_DRAFT=true`). Hazlos revisar, pon `ROLOBOX_LEGAL_DRAFT=false` y sube `ROLOBOX_LEGAL_VERSION` al publicarlos.
 - **Limpieza automática de pedidos:** los pedidos ya guardan `record_key`, `last_contact_at`, `closed_at` y `retention_hold`. Falta el comando programado que aplica los 90 días y los 12 meses del aviso de privacidad, y que marca como vencidos los pedidos sin pagar.
 - **Envío nacional:** las zonas existen pero están inactivas.
+- **Fotos de croissants, focaccias y trenzas:** hoy esas categorías se ven con círculos de color. Sube sus fotos desde el panel (Categorías y Sabores).
 - **Sección «Del horno a tu puerta»:** el dibujo de puntos está por reemplazarse por fotos del proceso o dibujos.
 - Avisos por WhatsApp y factura FEL.

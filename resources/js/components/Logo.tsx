@@ -10,7 +10,7 @@ export function LogoMark({ size = 44, className }: { size?: number; className?: 
     );
 }
 
-/** La caja de seis vista desde arriba: seis roles en fila, con la espiral calada en cada uno. */
+/** La caja de seis vista desde arriba: seis piezas en fila, con la espiral calada en cada una. */
 export function BoxMark({ className }: { className?: string }) {
     return (
         <svg viewBox="0 0 1204 200" className={className} role="img" aria-label="Twist & Rolls">

@@ -52,7 +52,7 @@ export default function Carrito({ cart }: { cart: ResolvedCart }) {
                                         <div className="size-16 rounded-full bg-well" aria-hidden="true" />
                                     )}
                                     <div className="min-w-0 flex-[1_1_200px]">
-                                        <p className="font-bold">{line.type === 'single' ? `Rol de ${line.flavors[0]?.name.toLowerCase()}` : line.name}</p>
+                                        <p className="font-bold">{line.label}</p>
                                         {line.type === 'box' && <p className="text-small text-muted">{flavorSummary(line.flavors)}</p>}
                                         {line.giftMessage && <p className="mt-1 text-small text-muted">Tarjeta: “{line.giftMessage}”</p>}
                                         <button

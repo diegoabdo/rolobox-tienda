@@ -130,7 +130,7 @@ class Cart
 
             foreach ($line['flavors'] as $flavorId => $count) {
                 $flavor = $flavors->get($flavorId);
-                if (! $flavor) {
+                if (! $flavor || ($product && ! $product->accepts($flavor))) {
                     $valid = false;
                     break;
                 }
@@ -146,8 +146,11 @@ class Cart
                 continue;
             }
 
-            $transferUnit = $product->priceFor(PaymentMethod::BankTransfer);
-            $lineTotal = $product->price_cents * $line['quantity'];
+            // Un producto suelto suma el precio extra de su sabor; una caja tiene precio fijo.
+            $extra = $product->type === ProductType::Single ? (int) ($flavors->get(array_key_first($line['flavors']))?->extra_cents ?? 0) : 0;
+            $unit = $product->price_cents + $extra;
+            $transferUnit = $product->priceFor(PaymentMethod::BankTransfer) + $extra;
+            $lineTotal = $unit * $line['quantity'];
             $transferLineTotal = $transferUnit * $line['quantity'];
             $subtotal += $lineTotal;
             $transferSubtotal += $transferLineTotal;
@@ -160,12 +163,16 @@ class Cart
                 'key' => (string) $key,
                 'productId' => $product->id,
                 'name' => $product->name,
+                // «Croissant de almendra»: el producto y su sabor, para mostrar en el carrito.
+                'label' => $product->type === ProductType::Single && $lineFlavors !== []
+                    ? $product->name.' de '.mb_strtolower($lineFlavors[0]['name'])
+                    : $product->name,
                 'type' => $product->type->value,
                 // Un rol suelto muestra la foto de su sabor; una caja, la foto de la caja.
                 'image' => $product->image_path ? asset($product->image_path) : $firstFlavorImage,
                 'flavors' => $lineFlavors,
                 'quantity' => (int) $line['quantity'],
-                'unitPriceCents' => $product->price_cents,
+                'unitPriceCents' => $unit,
                 'lineTotalCents' => $lineTotal,
                 'transferUnitPriceCents' => $transferUnit,
                 'transferLineTotalCents' => $transferLineTotal,
@@ -208,7 +215,7 @@ class Cart
 
         if ($product->type === ProductType::Box && $total !== (int) $product->box_size) {
             throw ValidationException::withMessages([
-                'flavors' => "Elige exactamente {$product->box_size} roles para la caja.",
+                'flavors' => "Elige exactamente {$product->box_size} piezas para la caja.",
             ]);
         }
 
@@ -216,9 +223,15 @@ class Cart
             throw ValidationException::withMessages(['flavors' => 'Elige un sabor.']);
         }
 
-        $active = Flavor::whereIn('id', array_keys($flavors))->where('active', true)->count();
-        if ($active !== count($flavors)) {
+        $chosen = Flavor::whereIn('id', array_keys($flavors))->where('active', true)->get();
+        if ($chosen->count() !== count($flavors)) {
             throw ValidationException::withMessages(['flavors' => 'Uno de los sabores ya no está disponible.']);
+        }
+
+        foreach ($chosen as $flavor) {
+            if (! $product->accepts($flavor)) {
+                throw ValidationException::withMessages(['flavors' => "«{$flavor->name}» no se puede pedir con «{$product->name}»."]);
+            }
         }
     }
 

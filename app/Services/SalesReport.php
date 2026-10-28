@@ -150,7 +150,7 @@ class SalesReport
         return $rows;
     }
 
-    /** Roles vendidos por sabor. @return array<string, int> */
+    /** Piezas vendidas por sabor. @return array<string, int> */
     public function byFlavor(): array
     {
         $rolls = [];

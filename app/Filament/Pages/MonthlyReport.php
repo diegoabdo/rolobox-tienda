@@ -129,7 +129,7 @@ class MonthlyReport extends Page
             $rows[] = [$p['name'], $p['units'], $q($p['revenue']), $q($p['cost']), $q($p['profit']), $p['margin'] ?? ''];
         }
         $rows[] = [];
-        $rows[] = ['Sabor', 'Roles vendidos'];
+        $rows[] = ['Sabor', 'Piezas vendidas'];
         foreach ($report->byFlavor() as $name => $rolls) {
             $rows[] = [$name, $rolls];
         }

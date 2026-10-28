@@ -3,10 +3,12 @@
 namespace App\Filament\Resources\Products\Tables;
 
 use App\Filament\Support\Labels;
+use App\Models\Product;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class ProductsTable
@@ -25,12 +27,19 @@ class ProductsTable
                     ->label('Nombre')
                     ->searchable()
                     ->weight('bold'),
-                TextColumn::make('type')
-                    ->label('Tipo')
+                TextColumn::make('category.name')
+                    ->label('Categoría')
                     ->badge()
-                    ->formatStateUsing(fn ($state): string => Labels::productType($state)),
+                    ->placeholder('Mixta')
+                    ->sortable(),
+                TextColumn::make('type')
+                    ->label('Se vende')
+                    ->badge()
+                    ->formatStateUsing(fn ($state, Product $record): string => $record->isBox()
+                        ? 'Caja '.($record->isMixedBox() ? 'mixta' : 'de su categoría')
+                        : Labels::productType($state)),
                 TextColumn::make('box_size')
-                    ->label('Roles')
+                    ->label('Piezas')
                     ->placeholder('1'),
                 TextColumn::make('price_cents')
                     ->label('Con tarjeta')
@@ -44,6 +53,11 @@ class ProductsTable
                     ->label('Publicado'),
                 ToggleColumn::make('available')
                     ->label('Disponible'),
+            ])
+            ->filters([
+                SelectFilter::make('category_id')
+                    ->label('Categoría')
+                    ->relationship('category', 'name'),
             ])
             ->recordActions([
                 EditAction::make(),

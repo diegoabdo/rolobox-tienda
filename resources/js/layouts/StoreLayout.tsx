@@ -118,7 +118,7 @@ export default function StoreLayout({ children }: { children: ReactNode }) {
                         <div className="lg:col-span-4">
                             <p className="mb-3 text-body font-semibold">Horneamos en Quetzaltenango</p>
                             <p>
-                                Roles por encargo con reparto en Xela. Pago seguro con Visa, Mastercard o transferencia.
+                                Panadería artesanal por encargo, con reparto en Xela. Pago seguro con Visa, Mastercard o transferencia.
                                 {contact.company && ` Twist & Rolls es una marca de ${contact.company}.`}
                             </p>
                         </div>
