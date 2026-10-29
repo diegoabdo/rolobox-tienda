@@ -38,7 +38,7 @@ class RecurrenteGatewayTest extends TestCase
         $session = $this->gateway()->createCheckout($order, Payment::sole(), 'https://ok', 'https://cancel');
 
         Http::assertSent(fn (Request $request) => $request['items'][0]['payment_method_types'] === ['bank_transfer']
-            && $request['items'][0]['amount_in_cents'] === $order->total_cents
+            && array_sum(array_column($request['items'], 'amount_in_cents')) === $order->total_cents
             && $request->hasHeader('X-SECRET-KEY', 'sk_test_123'));
 
         // Las transferencias tienen más tiempo para acreditarse que un pago con tarjeta.
@@ -63,5 +63,36 @@ class RecurrenteGatewayTest extends TestCase
         $this->assertFalse($remote->paid);
         $this->assertTrue($remote->processing);
         $this->assertSame('bank_transfer', $remote->paymentMethod);
+    }
+
+    public function test_each_product_and_the_shipping_go_as_their_own_item_summing_to_the_order_total(): void
+    {
+        $order = $this->orderPaidWith('card');
+        Http::fake(['*/checkouts' => Http::response(['id' => 'ch_1', 'checkout_url' => 'https://pago.example/ch_1'], 201)]);
+
+        $this->gateway()->createCheckout($order, Payment::sole(), 'https://ok', 'https://cancel');
+
+        Http::assertSent(function (Request $request) use ($order): bool {
+            $items = $request['items'];
+
+            return count($items) === 2
+                && $items[0]['name'] === 'Caja de seis roles: 3 canela clásica, 3 chocolate'
+                && $items[1]['name'] === 'Envío'
+                && array_sum(array_column($items, 'amount_in_cents')) === $order->total_cents;
+        });
+    }
+
+    public function test_a_discount_is_spread_over_the_products_and_the_total_still_matches(): void
+    {
+        $this->seedCatalog();
+        $this->addBoxToCart();
+        $this->post('/checkout', $this->checkoutData(['promotion_code' => 'BIENVENIDA']))->assertRedirect();
+        $order = Order::sole();
+        $this->assertGreaterThan(0, $order->discount_cents);
+        Http::fake(['*/checkouts' => Http::response(['id' => 'ch_1', 'checkout_url' => 'https://pago.example/ch_1'], 201)]);
+
+        $this->gateway()->createCheckout($order, Payment::sole(), 'https://ok', 'https://cancel');
+
+        Http::assertSent(fn (Request $request) => array_sum(array_column($request['items'], 'amount_in_cents')) === $order->total_cents);
     }
 }

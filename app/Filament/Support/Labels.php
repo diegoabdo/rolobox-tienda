@@ -74,8 +74,8 @@ class Labels
     public static function productTypes(): array
     {
         return [
-            ProductType::Box->value => 'Caja armable',
-            ProductType::Single->value => 'Rol suelto',
+            ProductType::Single->value => 'Se vende suelto',
+            ProductType::Box->value => 'Es una caja',
         ];
     }
 

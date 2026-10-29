@@ -1,0 +1,50 @@
+[
+    {
+        "file": "public/images/xela-panoramica.jpg",
+        "media": "image",
+        "ref": "openverse:1853513e-477b-4525-b324-7315a88d7ca8",
+        "title": "Panoramica de Quetzaltenango",
+        "creator": "Jvito3312",
+        "creatorUrl": "https://commons.wikimedia.org/w/index.php?title=User:Jvito3312&action=edit&redlink=1",
+        "date": null,
+        "license": "CC BY-SA 4.0",
+        "licenseCode": "by-sa",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "creditRequired": true,
+        "page": "https://commons.wikimedia.org/w/index.php?curid=91397697",
+        "via": "Wikimedia Commons",
+        "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/Panoramica_de_Quetzaltenango.jpg/1920px-Panoramica_de_Quetzaltenango.jpg",
+        "width": 1920,
+        "height": 1079,
+        "bytes": 565334,
+        "credit": "\"Panoramica de Quetzaltenango\" by Jvito3312, CC BY-SA 4.0, via Wikimedia Commons",
+        "notes": [
+            "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
+        ],
+        "saved": "2026-10-24T17:41:45.405Z"
+    },
+    {
+        "file": "public/images/xela-parque-central.jpg",
+        "media": "image",
+        "ref": "commons:93992337",
+        "title": "Parque Central de Quetzaltenango, Guatemala",
+        "creator": "Harry Diaz 93",
+        "creatorUrl": null,
+        "date": "2019-08-21",
+        "license": "CC BY-SA 4.0",
+        "licenseCode": "by-sa",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "creditRequired": true,
+        "page": "https://commons.wikimedia.org/wiki/File:Parque_Central_de_Quetzaltenango,_Guatemala.jpg",
+        "via": "Wikimedia Commons",
+        "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Parque_Central_de_Quetzaltenango%2C_Guatemala.jpg/1920px-Parque_Central_de_Quetzaltenango%2C_Guatemala.jpg",
+        "width": 1920,
+        "height": 755,
+        "bytes": 729862,
+        "credit": "\"Parque Central de Quetzaltenango, Guatemala\" by Harry Diaz 93, CC BY-SA 4.0, via Wikimedia Commons",
+        "notes": [
+            "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
+        ],
+        "saved": "2026-10-28T07:14:16.145Z"
+    }
+]

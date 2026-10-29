@@ -75,7 +75,7 @@
             @endif
         </x-filament::section>
 
-        <x-filament::section heading="Roles vendidos por sabor">
+        <x-filament::section heading="Piezas vendidas por sabor">
             @if ($flavors === [])
                 <p style="font-size: 0.875rem; opacity: 0.7;">Sin ventas este mes.</p>
             @else

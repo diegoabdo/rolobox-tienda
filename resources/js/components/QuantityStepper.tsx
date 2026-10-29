@@ -13,7 +13,7 @@ export function QuantityStepper({ value, onChange, min = 0, max = 20, label, dis
         <div className="flex items-center gap-1.5" role="group" aria-label={label}>
             <button
                 type="button"
-                className="flex size-11 cursor-pointer items-center justify-center rounded-full border border-line text-xl disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex size-11 cursor-pointer items-center justify-center bg-well text-body transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 rounded-xl"
                 onClick={() => onChange(Math.max(min, value - 1))}
                 disabled={disabled || value <= min}
                 aria-label={`Quitar uno · ${label}`}
@@ -25,7 +25,7 @@ export function QuantityStepper({ value, onChange, min = 0, max = 20, label, dis
             </span>
             <button
                 type="button"
-                className="flex size-11 cursor-pointer items-center justify-center rounded-full bg-ink text-xl text-cream disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex size-11 cursor-pointer items-center justify-center bg-accent text-body text-ground transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 rounded-xl"
                 onClick={() => onChange(Math.min(max, value + 1))}
                 disabled={disabled || disableIncrease || value >= max}
                 aria-label={`Agregar uno · ${label}`}

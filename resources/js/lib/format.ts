@@ -20,3 +20,8 @@ export function whatsappLink(number: string, text?: string): string {
     const digits = number.replace(/\D/g, '');
     return `https://wa.me/${digits}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 }
+
+/** "Q118" en vez de "Q118.00" cuando no hay centavos; para precios grandes. */
+export function shortMoney(cents: number): string {
+    return cents % 100 === 0 ? `Q${cents / 100}` : money(cents);
+}

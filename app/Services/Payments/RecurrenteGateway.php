@@ -4,12 +4,14 @@ namespace App\Services\Payments;
 
 use App\Enums\PaymentMethod;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Payment;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Integración con la página de pago hospedada de Recurrente.
@@ -34,21 +36,11 @@ class RecurrenteGateway implements PaymentGateway
             ? 'rolobox.checkout.transfer_ttl_minutes'
             : 'rolobox.checkout.payment_ttl_minutes'));
 
-        // Se cobra el pedido como un solo concepto con el total ya calculado por RoloBox
-        // (productos - descuento + envío). Así el monto cobrado es exactamente el del pedido.
+        // Cada producto del pedido va como su propio concepto, para que el cliente vea en Recurrente
+        // qué está comprando. Los montos ya traen el descuento y el envío calculados por Twist & Rolls,
+        // así que suman exactamente el total del pedido.
         $response = $this->send(fn (PendingRequest $http) => $http->post('/checkouts', [
-            'items' => [[
-                'name' => "Pedido {$order->reference} · RoloBox",
-                'amount_in_cents' => $order->total_cents,
-                'currency' => 'GTQ',
-                'quantity' => 1,
-                'charge_type' => 'one_time',
-                'available_installments' => [],
-                // Solo el método que eligió el cliente: el total ya trae su precio
-                // (con transferencia hay descuento). Si aun así paga con otro método,
-                // OrderPayments lo registra en el log para revisarlo.
-                'payment_method_types' => [$order->payment_method->value],
-            ]],
+            'items' => $this->items($order),
             'success_url' => $successUrl,
             'cancel_url' => $cancelUrl,
             'metadata' => $order->reference,
@@ -65,6 +57,72 @@ class RecurrenteGateway implements PaymentGateway
         }
 
         return new CheckoutSession($id, $url, $expiresAt);
+    }
+
+    /**
+     * Los conceptos del cobro: uno por producto del pedido (con sus sabores) y uno por el envío.
+     * El descuento se reparte entre los productos en proporción a su monto. Si por cualquier razón
+     * los montos no suman el total del pedido, se cobra un solo concepto con el total.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function items(Order $order): array
+    {
+        $order->loadMissing('items');
+
+        $lines = $order->items->map(fn ($item): array => [
+            'name' => $this->itemName($item),
+            'amount' => (int) $item->line_total_cents,
+        ])->values()->all();
+
+        $discount = (int) $order->discount_cents;
+        $subtotal = array_sum(array_column($lines, 'amount'));
+        if ($discount > 0 && $subtotal > 0) {
+            $left = $discount;
+            foreach ($lines as $i => $line) {
+                $share = $i === array_key_last($lines) ? $left : intdiv($discount * $line['amount'], $subtotal);
+                $lines[$i]['amount'] -= $share;
+                $left -= $share;
+            }
+        }
+
+        if ((int) $order->shipping_cents > 0) {
+            $lines[] = ['name' => 'Envío', 'amount' => (int) $order->shipping_cents];
+        }
+
+        $valid = $lines !== []
+            && array_sum(array_column($lines, 'amount')) === (int) $order->total_cents
+            && min(array_column($lines, 'amount')) >= 1;
+
+        if (! $valid) {
+            $lines = [['name' => "Pedido {$order->reference} · Twist & Rolls", 'amount' => (int) $order->total_cents]];
+        }
+
+        return array_map(fn (array $line): array => [
+            'name' => $line['name'],
+            'amount_in_cents' => $line['amount'],
+            'currency' => 'GTQ',
+            'quantity' => 1,
+            'charge_type' => 'one_time',
+            'available_installments' => [],
+            // Solo el método que eligió el cliente: el total ya trae su precio
+            // (con transferencia hay descuento). Si aun así paga con otro método,
+            // OrderPayments lo registra en el log para revisarlo.
+            'payment_method_types' => [$order->payment_method->value],
+        ], $lines);
+    }
+
+    /** «2 × Caja de seis roles: 3 canela clásica, 3 chocolate». */
+    private function itemName(OrderItem $item): string
+    {
+        $flavors = collect($item->flavors ?? [])
+            ->map(fn (array $flavor): string => ((int) ($flavor['count'] ?? 1) > 1 ? $flavor['count'].' ' : '').Str::lower((string) ($flavor['name'] ?? '')))
+            ->filter()
+            ->implode(', ');
+
+        $name = ($item->quantity > 1 ? "{$item->quantity} × " : '').$item->product_name.($flavors !== '' ? ": {$flavors}" : '');
+
+        return Str::limit($name, 100);
     }
 
     public function fetchCheckout(Payment $payment): RemoteCheckout

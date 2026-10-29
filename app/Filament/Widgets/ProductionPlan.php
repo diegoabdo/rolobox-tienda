@@ -7,12 +7,12 @@ use App\Models\Order;
 use Carbon\CarbonImmutable;
 use Filament\Widgets\Widget;
 
-/** Cuántos roles de cada sabor hay que hornear hoy, mañana y pasado (pedidos pagados o en el horno). */
+/** Cuántas piezas de cada sabor hay que hornear hoy, mañana y pasado (pedidos pagados o en el horno). */
 class ProductionPlan extends Widget
 {
     protected static ?int $sort = 3;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected string $view = 'filament.widgets.production-plan';
 

@@ -1,33 +1,61 @@
-@import '@fontsource/dm-sans/400.css';
-@import '@fontsource/dm-sans/500.css';
-@import '@fontsource/dm-sans/600.css';
-@import '@fontsource/dm-sans/700.css';
-@import '@fontsource-variable/fraunces/opsz.css';
 @import 'tailwindcss';
 
-@source '../../storage/framework/views/*.php';
-@source '../js/**/*.tsx';
-
-@theme {
-    --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Fraunces Variable', Georgia, serif;
-
-    --color-cream: #fbf2e4;
-    --color-paper: #fff8ee;
-    --color-field: #fffdf9;
-    --color-sand: #f0e3cf;
-    --color-ink: #482014;
-    --color-muted: #80624e;
-    --color-line: #decbb4;
-    --color-edge: #b59a80;
-    --color-clay: #b14b1c;
-    --color-clay-dark: #93391a;
-    --color-honey: #e7b963;
-    --color-leaf: #2f6b3a;
-    --color-leaf-soft: #e7f0e2;
-    --color-alert: #9a2f1a;
+/* Archivo (OFL), servida desde el propio sitio: sin conexión a servicios externos. Variable: grosor 100–900 y ancho 62–125%. */
+@font-face {
+    font-family: 'Archivo';
+    font-style: normal;
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-display: swap;
+    src: url('../fonts/archivo-latin-ext.woff2') format('woff2');
+    unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+        U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
+@font-face {
+    font-family: 'Archivo';
+    font-style: normal;
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-display: swap;
+    src: url('../fonts/archivo-latin.woff2') format('woff2');
+    unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+        U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/*
+ * Colores tomados del producto: el chocolate del ganache como fondo,
+ * el glaseado como tinta y el caramelo como único acento.
+ */
+@theme {
+    --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+
+    /* Café chocolate (el fondo del logo) y miel dorada (sus letras): se alternan como campos y se prestan el color del texto. */
+    --color-ground: #2a1109;
+    --color-surface: #371a0f;
+    --color-well: #46261a;
+    --color-ink: #efedea;
+    --color-muted: #d9c4a4;
+    --color-line: #6a3a26;
+    --color-edge: #8a5a40;
+    --color-honey: #d9a441;
+    --color-honey-deep: #c4902f;
+    --color-accent: #d9a441;
+    --color-accent-strong: #e6b55a;
+    --color-leaf: #b4dea4;
+    --color-leaf-soft: #33401f;
+    --color-alert: #ffa08a;
+
+    --text-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
+    --text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+    --text-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+    --text-head: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
 @layer base {
     html {
         scroll-behavior: smooth;
@@ -35,12 +63,24 @@
     }
 
     body {
-        @apply bg-cream font-sans text-ink antialiased;
+        @apply bg-ground font-sans text-ink antialiased;
+        line-height: 1.5;
+    }
+
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
     }
 
     :focus-visible {
-        outline: 3px solid var(--color-clay);
+        outline: 3px solid var(--color-accent);
         outline-offset: 3px;
+    }
+
+    ::selection {
+        background: var(--color-accent);
+        color: var(--color-ground);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -51,45 +91,55 @@
 }
 
 @utility btn {
-    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-3 rounded-full px-6 text-[15px] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-55;
+    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-3 rounded-xl px-6 text-body font-semibold disabled:cursor-not-allowed disabled:opacity-55;
+    transition:
+        transform 160ms var(--ease-out),
+        background-color 200ms ease,
+        color 200ms ease;
+
+    &:active:not(:disabled) {
+        transform: scale(0.97);
+    }
+}
+
+@utility display {
+    @apply font-display font-extrabold uppercase;
+    font-stretch: 62%;
+    letter-spacing: -0.01em;
+    line-height: 0.88;
 }
 
 @layer components {
     .wrap {
-        @apply mx-auto w-full max-w-6xl px-5 sm:px-6;
+        @apply mx-auto w-full max-w-[1360px] px-4 sm:px-8;
     }
-
-    .eyebrow {
-        @apply text-[11px] font-bold tracking-[0.17em] uppercase;
-    }
-
 
     .btn-primary {
-        @apply btn bg-clay text-[#fff9ee] hover:bg-clay-dark;
+        @apply btn bg-honey text-ground hover:bg-accent-strong;
     }
 
     .btn-outline {
-        @apply btn border border-ink bg-transparent text-ink hover:bg-ink hover:text-cream;
+        @apply btn bg-well text-ink hover:bg-edge;
     }
 
     .field-label {
-        @apply block text-sm font-semibold;
+        @apply block text-small font-semibold;
     }
 
     .field-input {
-        @apply mt-2 block w-full rounded-xl border border-edge bg-field px-4 py-3 text-ink placeholder:text-muted/70 aria-invalid:border-alert;
+        @apply mt-2 block w-full rounded-xl border-2 border-transparent bg-well px-4 py-3 text-body text-ink placeholder:text-muted/80 focus:border-accent focus:outline-none aria-invalid:border-alert;
     }
 
     .field-error {
-        @apply mt-1.5 text-sm font-semibold text-alert;
+        @apply mt-1.5 text-small font-semibold text-alert;
     }
 
     .card {
-        @apply rounded-[18px] border border-line bg-paper;
+        @apply rounded-2xl bg-surface;
     }
 
     .legal-content h2 {
-        @apply mt-10 mb-3 font-display text-2xl font-semibold tracking-tight;
+        @apply mt-10 mb-3 font-display text-2xl font-extrabold tracking-tight;
     }
 
     .legal-content h3 {
@@ -98,7 +148,7 @@
 
     .legal-content p,
     .legal-content li {
-        @apply text-[15px] leading-[1.85];
+        @apply text-body leading-[1.6];
     }
 
     .legal-content p {
@@ -111,5 +161,71 @@
 
     .legal-content a {
         @apply underline underline-offset-3;
+    }
+}
+
+/*
+ * Entradas al hacer scroll. Solo se ocultan cuando el script marcó <html>,
+ * y se muestran con un atributo (no una clase) para que React no lo borre al re-renderizar;
+ * así el contenido nunca queda invisible si el JS falla.
+ */
+.js-reveal [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+        opacity 700ms var(--ease-out),
+        transform 700ms var(--ease-out);
+    transition-delay: calc(var(--reveal-index, 0) * 80ms);
+}
+
+.js-reveal [data-reveal][data-revealed] {
+    opacity: 1;
+    transform: none;
+}
+
+@keyframes roll-in {
+    from {
+        opacity: 0;
+        transform: scale(0.6) rotate(-40deg);
+    }
+}
+
+@keyframes drift {
+    from {
+        transform: scale(1.04) translateX(0);
+    }
+    to {
+        transform: scale(1.12) translateX(-2%);
+    }
+}
+
+.roll-in {
+    animation: roll-in 650ms var(--ease-out) both;
+    animation-delay: calc(var(--roll-index, 0) * 70ms + 120ms);
+}
+
+.drift {
+    animation: drift 24s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Con movimiento reducido, todo se ve desde el principio: sin entradas. */
+    .js-reveal [data-reveal] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .roll-in {
+        animation: none;
+    }
+
+    .drift {
+        animation: none;
+        transform: scale(1.04);
+    }
+
+    .btn:active:not(:disabled) {
+        transform: none;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\DeliveryType;
 use App\Enums\PaymentMethod;
 use App\Http\Requests\CheckoutRequest;
+use App\Models\Flavor;
 use App\Models\Zone;
 use App\Services\Cart;
 use App\Services\Checkout;
@@ -60,6 +61,7 @@ class CheckoutController extends Controller
             'dates' => DeliverySchedule::availableDates(),
             'slots' => DeliverySchedule::slots(),
             'quotes' => $quotes,
+            'flavorImages' => Flavor::active()->get()->mapWithKeys(fn (Flavor $flavor) => [$flavor->id => $flavor->imageUrl()]),
             'idempotencyKey' => (string) Str::uuid(),
             'legalVersion' => config('rolobox.legal_version'),
         ]);

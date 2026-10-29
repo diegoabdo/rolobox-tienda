@@ -27,6 +27,7 @@ class HandleInertiaRequests extends Middleware
             'contact' => [
                 'whatsapp' => config('rolobox.contact.whatsapp'),
                 'email' => config('rolobox.contact.email'),
+                'company' => config('rolobox.legal_entity'),
             ],
         ];
     }

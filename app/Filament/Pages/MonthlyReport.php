@@ -14,9 +14,9 @@ use UnitEnum;
 /** Ventas, costos, gastos y ganancias de un mes, por producto, sabor, categoría de gasto y día. Se puede descargar en CSV. */
 class MonthlyReport extends Page
 {
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedChartBar;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
-    protected static string | UnitEnum | null $navigationGroup = 'Finanzas';
+    protected static string|UnitEnum|null $navigationGroup = 'Finanzas';
 
     protected static ?int $navigationSort = 3;
 
@@ -102,7 +102,7 @@ class MonthlyReport extends Page
         $q = fn (?int $cents): string => $cents === null ? '' : number_format($cents / 100, 2, '.', '');
 
         $rows = [
-            ['Reporte RoloBox', $this->getSubheading()],
+            ['Reporte Twist & Rolls', $this->getSubheading()],
             [],
             ['Resumen', 'Monto (Q)'],
             ['Pedidos pagados', $t['orders']],
@@ -129,7 +129,7 @@ class MonthlyReport extends Page
             $rows[] = [$p['name'], $p['units'], $q($p['revenue']), $q($p['cost']), $q($p['profit']), $p['margin'] ?? ''];
         }
         $rows[] = [];
-        $rows[] = ['Sabor', 'Roles vendidos'];
+        $rows[] = ['Sabor', 'Piezas vendidas'];
         foreach ($report->byFlavor() as $name => $rolls) {
             $rows[] = [$name, $rolls];
         }

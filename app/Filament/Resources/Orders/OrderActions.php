@@ -52,7 +52,7 @@ class OrderActions
             ->requiresConfirmation()
             ->modalHeading(fn (Order $record): string => "¿Cancelar {$record->reference}?")
             ->modalDescription(fn (Order $record): string => $record->isPaid()
-                ? 'Este pedido ya está pagado. Si lo pide el cliente, la política es sin reembolsos. Si cancela RoloBox porque no puede cumplir, hay que devolver lo pagado desde el panel de Recurrente.'
+                ? 'Este pedido ya está pagado. Si lo pide el cliente, la política es sin reembolsos. Si cancela Twist & Rolls porque no puede cumplir, hay que devolver lo pagado desde el panel de Recurrente.'
                 : 'Todavía no se pagó. Si el cliente paga después de cancelarlo, el pago queda registrado y aparece una advertencia en el log.')
             ->modalSubmitActionLabel('Sí, cancelar')
             ->action(function (Order $record): void {

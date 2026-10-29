@@ -22,7 +22,7 @@ export default function PagoPrueba({ paymentId, reference, totalCents, paid, met
             <Head title="Pago de prueba" />
             <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
                 <p className="mb-4 rounded-lg bg-[#fff4d6] px-3 py-2 text-xs font-bold text-[#6b5000]">PROCESADOR SIMULADO · solo desarrollo</p>
-                <p className="text-sm text-[#5a6575]">Pagar a RoloBox</p>
+                <p className="text-sm text-[#5a6575]">Pagar a Twist & Rolls</p>
                 <p className="mb-1 text-3xl font-bold">{money(totalCents)}</p>
                 <p className="mb-6 text-sm text-[#5a6575]">Pedido {reference}</p>
                 <div className="mb-6 rounded-xl border border-[#d5dbe3] p-4 text-sm">

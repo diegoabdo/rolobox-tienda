@@ -1,5 +1,21 @@
+export type Category = {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    image: string | null;
+};
+
 export type Flavor = {
     id: number;
+    /** Categoría a la que pertenece (rolls, croissants, trenzas…). */
+    categoryId: number | null;
+    /** Precio extra de este sabor sobre el del producto, en centavos. */
+    extraCents: number;
+    /** Puede ir en la caja de su categoría. */
+    boxEligible: boolean;
+    /** Puede ir en cajas mixtas. */
+    mixEligible: boolean;
     name: string;
     slug: string;
     description: string;
@@ -15,6 +31,9 @@ export type Product = {
     type: 'box' | 'single';
     description: string;
     boxSize: number | null;
+    categoryId: number | null;
+    /** Caja mixta: mezcla sabores de varias categorías. */
+    mixed: boolean;
     /** Precio publicado: con tarjeta. */
     priceCents: number;
     /** Precio pagando por transferencia (igual o menor). */
@@ -49,6 +68,8 @@ export type CartLine = {
     key: string;
     productId: number;
     name: string;
+    /** «Croissant de almendra»: el producto con su sabor. */
+    label: string;
     type: 'box' | 'single';
     image: string | null;
     flavors: CartFlavor[];
@@ -113,5 +134,5 @@ export type CustomerOrder = {
 export type SharedProps = {
     cartCount: number;
     flash: { status: string | null };
-    contact: { whatsapp: string; email: string };
+    contact: { whatsapp: string; email: string; company: string };
 };

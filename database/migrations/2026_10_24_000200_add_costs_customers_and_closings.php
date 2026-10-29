@@ -25,7 +25,7 @@ return new class extends Migration
         });
 
         Schema::table('zones', function (Blueprint $table) {
-            // Lo que le cuesta a RoloBox entregar en esta zona (gasolina, mensajero).
+            // Lo que le cuesta a Twist & Rolls entregar en esta zona (gasolina, mensajero).
             $table->unsignedInteger('delivery_cost_cents')->default(0)->after('fee_cents');
         });
 

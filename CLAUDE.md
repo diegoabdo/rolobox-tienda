@@ -1,47 +1,8 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# Twist & Rolls
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+Tienda en línea de roles de canela por encargo en Xela, Guatemala. Laravel 13, Inertia 3, React 19, Tailwind 4 y panel Filament 5. El README explica cómo correrla y `DESPLIEGUE.md` cómo publicarla.
 
-## Prerequisites
-
-Verify that PHP and Composer are available:
-
-```sh
-php -v
-composer -V
-```
-
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
-
-macOS:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
-
-Windows PowerShell:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
-
-Linux:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+- No instalar Laravel Boost ni ejecutar `boost:install`: se quitó a propósito.
+- Las skills de Claude viven en `~/.claude/skills`, no en el proyecto: no copiarlas aquí.
+- Antes de terminar un cambio: `php artisan test` y `npm run types`. Si se tocó PHP, `vendor/bin/pint --dirty`.
+- Los nombres internos (`config/rolobox.php`, variables `ROLOBOX_*`) conservan «rolobox» a propósito; la marca visible es «Twist & Rolls».

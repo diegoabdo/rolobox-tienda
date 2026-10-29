@@ -17,7 +17,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-/** Panel interno de RoloBox en /admin: pedidos, catálogo, zonas y promociones. */
+/** Panel interno de Twist & Rolls en /admin: pedidos, catálogo, zonas y promociones. */
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -27,8 +27,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('RoloBox')
-            ->favicon('/images/logo.svg')
+            ->brandName('Twist & Rolls')
+            ->favicon('/images/favicon.png')
             ->colors([
                 'primary' => Color::hex('#b14b1c'),
             ])

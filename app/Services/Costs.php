@@ -53,7 +53,9 @@ class Costs
     /** Costo estimado de un producto usando el costo promedio de los sabores activos (para el panel). */
     public static function estimatedProductCost(Product $product): int
     {
-        $average = (int) round((float) Flavor::where('active', true)->avg('cost_cents'));
+        $average = (int) round((float) Flavor::where('active', true)
+            ->when(! $product->isMixedBox() && $product->category_id, fn ($query) => $query->where('category_id', $product->category_id))
+            ->avg('cost_cents'));
         $rolls = $product->isBox() ? (int) $product->box_size : 1;
 
         return (int) $product->packaging_cost_cents + $rolls * $average;

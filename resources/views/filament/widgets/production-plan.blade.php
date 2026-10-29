@@ -1,14 +1,14 @@
 <x-filament-widgets::widget>
     <x-filament::section
         heading="Qué hornear"
-        description="Roles por sabor de los pedidos pagados o en el horno, según el día de entrega."
+        description="Piezas por sabor de los pedidos pagados o en el horno, según el día de entrega."
     >
         <div style="display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));">
             @foreach ($days as $day)
                 <div>
                     <p style="font-weight: 600;">{{ $day['label'] }}</p>
                     <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.5rem;">
-                        {{ $day['orders'] }} {{ $day['orders'] === 1 ? 'pedido' : 'pedidos' }} · {{ $day['rolls'] }} roles
+                        {{ $day['orders'] }} {{ $day['orders'] === 1 ? 'pedido' : 'pedidos' }} · {{ $day['rolls'] }} piezas
                     </p>
 
                     @if ($day['flavors'] === [])

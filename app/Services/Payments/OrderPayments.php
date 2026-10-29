@@ -80,7 +80,7 @@ class OrderPayments
             }
 
             // El total con transferencia trae descuento. Si el cliente terminó pagando con tarjeta,
-            // el cobro es válido pero RoloBox absorbe la comisión: queda registrado para revisarlo.
+            // el cobro es válido pero Twist & Rolls absorbe la comisión: queda registrado para revisarlo.
             if ($order->payment_method === PaymentMethod::BankTransfer
                 && $remote->paymentMethod !== null
                 && $remote->paymentMethod !== PaymentMethod::BankTransfer->value) {
