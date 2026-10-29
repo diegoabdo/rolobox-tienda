@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [StoreController::class, 'home'])->name('home');
 Route::get('/armar-caja', [StoreController::class, 'box'])->name('box');
+Route::get('/nosotros', [StoreController::class, 'about'])->name('about');
 
 Route::get('/carrito', [CartController::class, 'show'])->name('cart.show');
 Route::post('/carrito', [CartController::class, 'store'])->middleware('throttle:60,1')->name('cart.store');

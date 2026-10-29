@@ -200,7 +200,9 @@ class CatalogSeeder extends Seeder
             ]);
         }
 
-        Product::updateOrCreate(['slug' => 'caja-mixta-de-seis'], [
+        // La caja mixta queda lista pero DESACTIVADA: por ahora solo hay cajas de un mismo producto y sus variantes.
+        // Para activarla: Panel → Productos → «Caja mixta de seis» → Publicado. Con firstOrCreate, volver a correr el seeder no la reactiva.
+        Product::firstOrCreate(['slug' => 'caja-mixta-de-seis'], [
             'category_id' => null,
             'name' => 'Caja mixta de seis',
             'type' => ProductType::Box,
@@ -209,7 +211,7 @@ class CatalogSeeder extends Seeder
             'box_size' => 6,
             'price_cents' => 12800,
             'transfer_price_cents' => 11900,
-            'published' => true,
+            'published' => false,
             'available' => true,
             'sort_order' => 20,
         ]);

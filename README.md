@@ -44,6 +44,8 @@ Tres piezas, de lo general a lo particular:
    Más un **precio extra** opcional (ej.: croissant de almendra +Q3) y su costo.
 3. **Productos:** cómo se vende. **Suelto** es una presentación con precio («Croissant», «Trenza completa», «Porción de trenza», «Trenza pequeña»); el cliente elige presentación y sabor. **Caja** lleva N piezas y puede ser **de una sola categoría** (solo sabores de su categoría marcados «En su caja») o **mixta** (los sabores marcados «En caja mixta», de cualquier categoría).
 
+**Cajas mixtas:** existe la opción (Productos → «Es una caja» → «Mixta»), pero la «Caja mixta de seis» viene **desactivada**: hoy solo hay cajas de un mismo producto y sus variantes. Para activarla, marca «Publicado» en ese producto y revisa qué sabores tienen «En caja mixta». Volver a correr el seeder no la reactiva.
+
 Precio de una pieza suelta = precio del producto + extra del sabor. Una caja tiene precio fijo. Para ocultar algo se desactiva; no se borra, para no romper pedidos viejos.
 
 ## Requisitos
@@ -113,6 +115,8 @@ Cubren: armado de cajas, totales calculados en el servidor, cupones (primera com
 3. Crea un endpoint de webhooks que apunte a `https://TU-DOMINIO/webhooks/recurrente` con el evento `intent.succeeded`, y copia su secreto (`whsec_…`) en `RECURRENTE_WEBHOOK_SECRET`.
 4. Prueba con las tarjetas de prueba de Recurrente: `4242 4242 4242 4242` (aprobada) y `4000 0000 0000 0002` (rechazada).
 
+En la página de pago, Recurrente muestra cada producto del pedido por separado (con sus sabores) y el envío; el descuento se reparte entre los productos y los montos suman el total del pedido. El nombre del negocio que aparece arriba se cambia en tu cuenta de Recurrente, no en el código.
+
 Cómo se confirma un pago: ni el regreso del cliente a la tienda ni el contenido del webhook se toman como prueba. En los dos casos el servidor le pregunta a Recurrente por el checkout y solo marca el pedido como pagado si responde `paid` **y** el monto coincide con el total del pedido. Si el monto no coincide, no lo confirma y deja un registro `critical` en el log.
 
 En local el webhook no llega (Recurrente no puede ver tu computadora), pero la confirmación igual funciona porque se consulta al volver de la página de pago.
@@ -136,11 +140,14 @@ En el servidor también deben correr:
 
 ## Diseño
 
-- Colores tomados del producto (chocolate, glaseado, caramelo y kraft) como variables de Tailwind en `resources/css/app.css`.
-- Tipografía Schibsted Grotesk (licencia OFL), servida desde el propio sitio en `resources/fonts/`, sin conexión a Google.
-- El círculo, el rol visto desde arriba, se repite como motivo: fotos, días de entrega, el ticket del pago y el footer.
-- Las fotos de cada sabor son recortes de `public/images/caja.jpg`. Para reemplazarlas, sube fotos nuevas desde el panel (Sabores).
-- Foto de Quetzaltenango: «Panoramica de Quetzaltenango» de Jvito3312, CC BY-SA 4.0, vía Wikimedia Commons. El crédito está en el footer y en `public/images/credits.json`.
+La idea: en una panadería por encargo todo empieza con una **hoja de pedido**. Papel dorado sobre el café del logo, campos de color planos y esquinas rectas.
+
+- **Colores:** dos campos que se alternan, café chocolate y miel dorada (los del logo), más el marfil del texto usado como fondo. Son variables de Tailwind en `resources/css/app.css`.
+- **Tipografía:** Archivo (licencia OFL), condensada y en mayúsculas para los títulos, normal para el texto. Se sirve desde `resources/fonts/`, sin conexión a Google.
+- **Dibujos de producto:** rol, croissant, trenza y focaccia dibujados en SVG (`resources/js/components/ProductArt.tsx`) para las categorías que todavía no tienen foto. Se eligen por el identificador de la categoría (`rolls…`, `croissant…`, `trenza…`, `focaccia…`).
+- **Portada:** título, una vitrina con una columna de color por categoría, un capítulo de color por categoría en el menú (dibujo fijo a un lado, lista al otro), cajas en franjas con precio y botón a la derecha.
+- **Fotos de los sabores de rolls:** recortes de `public/images/caja.jpg`. Para reemplazarlas, sube fotos desde el panel (Sabores).
+- **Fotos de Xela (CC BY-SA 4.0, vía Wikimedia Commons):** «Panoramica de Quetzaltenango» de Jvito3312 y «Parque Central de Quetzaltenango, Guatemala» de Harry Diaz 93. Los créditos están en el pie y en `public/images/credits.json`.
 
 ## Dónde está cada cosa
 

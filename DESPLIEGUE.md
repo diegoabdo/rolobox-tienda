@@ -4,11 +4,36 @@ Cómo publicar la tienda en internet con su propio dominio: qué contratar, cuá
 
 > **Los precios son de octubre de 2026,** tomados de las páginas de cada proveedor y de comparativas recientes, a unos **Q7.7 por dólar**. Confírmalos antes de pagar: cambian seguido.
 
+## 0. Para desplegar mañana: la hoja corta
+
+**Hoy (30 minutos)**
+
+1. **Sube el rediseño a `master`.** Todo el trabajo está en la rama `dabdo/ui_redesign`, sin commit. El servidor despliega desde `master` en GitHub. Hacer commit, abrir el PR y unirlo.
+2. **Compra el dominio** `twistrolls.com` en GoDaddy (≈ €11 al año). Titular: Unique; correo de contacto: lorenaestrada@hotmail.com; sin extras (ni correo, ni hosting, ni SSL, ni «protección»); renovación automática activada.
+3. **Crea las cuentas:** Cloudflare (gratis), DigitalOcean, Laravel Forge y GitHub (si el repositorio todavía no es privado, ponlo privado). Ten una tarjeta con compras internacionales.
+4. **Ten a la mano:** el número de WhatsApp del negocio (`502XXXXXXXX`), las llaves de prueba de Recurrente (`sk_test_…`) y los precios reales.
+
+**Mañana (≈ 3 horas, con la cuenta de Recurrente en prueba)**
+
+| Hora | Qué | Paso |
+| --- | --- | --- |
+| 0:00 | Cloudflare: agregar el dominio y cambiar los nameservers en GoDaddy | 2 |
+| 0:15 | DigitalOcean + Forge: crear el servidor (2 GB, Nueva York, PHP 8.4, MySQL 8, Node 22) | 3 |
+| 0:45 | DNS: registro A a la IP del servidor | 4 |
+| 1:00 | Forge: sitio, `.env`, script de despliegue y primer despliegue | 5 |
+| 1:30 | SSL, SSR y programador de tareas | 6 y 7 |
+| 1:45 | Datos iniciales, tu usuario del panel, precios reales | 8 |
+| 2:15 | Recurrente en modo prueba y compras de prueba | 10 |
+| 2:45 | Lista de revisión | 11 |
+
+**Lo que no depende de ti y puede frenar el lanzamiento:** la cuenta comercial de Recurrente (verificación de la empresa, puede tardar días) y la revisión legal de términos y privacidad. Puedes publicar la tienda en modo prueba mañana y activar los cobros reales cuando Recurrente te apruebe.
+
+**Qué se carga al instalar:** el seeder crea un catálogo **de ejemplo** (rolls, croissants, focaccias, trenzas y sus precios, zonas de Xela y la promoción BIENVENIDA). **Cámbialo desde el panel antes de anunciar.** La «Caja mixta de seis» queda desactivada.
 ## 1. La recomendación en corto
 
 | Pieza | Qué usar | Por qué |
 | --- | --- | --- |
-| Dominio | `twistrolls.com` (o `rolobox.com`) | La marca, con terminación guatemalteca |
+| Dominio | `twistrolls.com`, comprado en GoDaddy (≈ €11 al año) | El nombre de la marca; un `.com` se compra en minutos y no pide documentos |
 | DNS | Cloudflare (gratis) | Rápido, gratis y con reenvío de correo incluido |
 | Servidor | DigitalOcean, Droplet de 2 GB, región Nueva York | Suficiente para la tienda, el panel y el SSR, con disco persistente para las fotos |
 | Administración del servidor | Laravel Forge | Instala PHP, la base de datos, el SSL y el despliegue sin tocar la terminal |
@@ -17,7 +42,7 @@ Cómo publicar la tienda en internet con su propio dominio: qué contratar, cuá
 | Pagos | Recurrente, cuenta comercial a nombre de Unique | Ya está integrado; la cuenta comercial cobra menos comisión |
 | Correo | Cloudflare Email Routing → lorenaestrada@hotmail.com | Recibes en tu Hotmail lo que llegue a `pedidos@twistrolls.com` |
 
-**Total estimado: unos US$26.40 al mes (≈ Q205) más el dominio (≈ Q200–300 al año). El primer año sale en unos Q2,650–2,750.**
+**Primer mes: ≈ Q300. Cada mes después: ≈ Q203 (US$26.40).** El dominio se paga una vez al año (≈ €11, unos Q98), no cada mes. Calculado a Q7.7 por dólar y Q8.9 por euro.
 
 ## 2. Presupuesto
 
@@ -28,9 +53,9 @@ Cómo publicar la tienda en internet con su propio dominio: qué contratar, cuá
 | Droplet 2 GB / 1 vCPU / 50 GB SSD | US$12.00 | US$144.00 |
 | Respaldos semanales del Droplet (20% del Droplet) | US$2.40 | US$28.80 |
 | Laravel Forge, plan Hobby | US$12.00 | US$144.00 (≈17% menos pagando el año) |
-| Dominio `.com.gt` | — | Q199–300 según el registrador |
+| Dominio `twistrolls.com` (GoDaddy) | — | €11 (≈ Q98) |
 | Cloudflare (DNS y correo), SSL, GitHub privado | Gratis | Gratis |
-| **Total** | **≈ US$26.40 (≈ Q205)** | **≈ Q2,650–2,750** |
+| **Total** | **≈ US$26.40 (≈ Q203) al mes** | **Primer mes ≈ Q300 con el dominio** |
 
 ### Opción B · Económica: DigitalOcean sin Forge
 
@@ -38,8 +63,8 @@ Cómo publicar la tienda en internet con su propio dominio: qué contratar, cuá
 | --- | --- |
 | Droplet 1 GB + 2 GB de swap | US$6.00 |
 | Respaldos semanales | US$1.20 |
-| Dominio | Q199–300 al año |
-| **Total** | **≈ US$7.20 (≈ Q55) + dominio; ≈ Q915 el primer año** |
+| Dominio | €11 al año (≈ Q98) |
+| **Total** | **≈ US$7.20 (≈ Q55) al mes; primer mes ≈ Q153** |
 
 Ahorras unos Q150 al mes, pero alguien tiene que instalar y mantener a mano Nginx, PHP-FPM, MySQL, Supervisor, Certbot y las actualizaciones de seguridad. Conviene solo si tú o alguien de confianza maneja servidores Linux.
 
@@ -66,15 +91,25 @@ Lo que más tarda es lo que no depende del código. Arráncalo primero:
 3. **Precios reales.** Los del catálogo de ejemplo se cambian en el panel después de instalar.
 4. **Número de WhatsApp** del negocio, con código de país (`502…`).
 5. **Fotos propias** de los roles, si las tienes. Las actuales son recortes de la foto de la caja.
-6. **Subir el rediseño a `master`.** Los cambios de este rediseño están en la rama `dabdo/ui_redesign` y todavía sin commit. El servidor va a desplegar desde `master` en GitHub (`diegoabdo/rolobox-tienda`).
+6. **Subir el rediseño a `master`.** Los cambios están en la rama `dabdo/ui_redesign`, sin commit. El servidor despliega desde `master` en GitHub (`diegoabdo/rolobox-tienda`).
+7. **Misión y visión.** La página «Nosotros» tiene un texto de borrador (`resources/js/pages/Nosotros.tsx`); pon el texto real.
+8. **Fotos de croissants, focaccias y trenzas.** Hasta que subas las tuyas desde el panel, se ven con dibujos.
 
 ## 4. Paso a paso
 
-### Paso 1 · Comprar el dominio (día 1)
+### Paso 1 · Comprar el dominio (hoy)
 
-- **`.com.gt`:** se compra en un registrador guatemalteco (por ejemplo yo.gt, dominios.gt o Grupo Intersat) o directo en el [registro .gt](https://www.gt/sitio/fees.php). Pon como **titular a Unique**: el registro cobra la tarifa nacional (unos US$20 al año) a titulares guatemaltecos, y los registradores entre Q199 y Q300 con IVA. Puede tardar unos días y pedir documentos.
-- **`.com`:** alternativa más rápida (minutos), en Cloudflare Registrar o cualquier registrador. Si puedes, compra los dos y redirige uno al otro.
+`twistrolls.com` es un `.com`: se registra en cualquier registrador internacional (GoDaddy, en tu caso) y **no en www.gt**, que solo maneja los dominios que terminan en `.gt`.
 
+Al comprarlo en GoDaddy:
+
+1. Revisa el precio de **renovación**, no solo el del primer año.
+2. Titular: **Unique**, con un correo que controles.
+3. La privacidad del titular (WHOIS) debe venir incluida.
+4. **No compres extras:** el servidor es DigitalOcean, el SSL es gratis con Forge y el correo se reenvía gratis con Cloudflare.
+5. Activa la renovación automática y revisa que la tarjeta no venza: si el dominio se vence, la tienda deja de funcionar.
+
+El dominio sigue registrado y pagado en GoDaddy; solo cambias sus *nameservers* a los de Cloudflare (paso siguiente).
 ### Paso 2 · Pasar el DNS a Cloudflare (día 1–2)
 
 1. Crea una cuenta gratis en Cloudflare y agrega el sitio `twistrolls.com` con el plan Free.
@@ -192,15 +227,16 @@ En Forge:
 Desde **Commands** en Forge (o por SSH, en la carpeta del sitio):
 
 ```bash
-php artisan db:seed --force          # carga sabores, productos, zonas y la promoción de ejemplo
+php artisan db:seed --force          # catálogo DE EJEMPLO: categorías, sabores, productos, zonas y la promoción
 php artisan make:filament-user       # tu cuenta del panel
 ```
 
 Luego entra a `https://twistrolls.com/admin` y:
 
-1. Pon los **precios y tarifas reales** en Productos y Zonas.
+1. En **Catálogo**, reemplaza o desactiva lo de ejemplo: Categorías, Sabores (con sus alérgenos y precios extra), Productos (precios reales) y Zonas (tarifas reales).
 2. Revisa o desactiva la promoción **BIENVENIDA**.
-3. Sube las fotos de los sabores, si tienes propias.
+3. Sube las fotos de categorías y sabores, si las tienes. Se guardan en `public/images/catalogo`, que debe poder escribirse (en Forge, el usuario `forge` ya es su dueño).
+4. Deja la **Caja mixta de seis** desactivada hasta que quieras ofrecerla.
 
 ### Paso 9 · Correo con tu dominio (día 3, opcional pero recomendado)
 

@@ -28,6 +28,11 @@ class StoreController extends Controller
         ]);
     }
 
+    public function about(): Response
+    {
+        return Inertia::render('Nosotros');
+    }
+
     /**
      * Armar caja. `caja` elige la caja por su identificador; `sabor` precarga un sabor
      * y, si no se dice la caja, abre la primera que lo acepta.

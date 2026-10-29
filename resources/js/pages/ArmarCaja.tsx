@@ -114,9 +114,9 @@ export default function ArmarCaja({ categories, flavors, boxes, selectedBox, pre
                                             role="radio"
                                             aria-checked={selected}
                                             onClick={() => chooseBox(option)}
-                                            className={`min-h-12 cursor-pointer rounded-full px-6 text-body font-semibold transition-colors ${
+                                            className={`min-h-12 cursor-pointer px-6 text-body font-semibold transition-colors ${
                                                 selected ? 'bg-accent text-ground' : 'bg-well hover:bg-edge'
-                                            }`}
+                                            } rounded-xl`}
                                         >
                                             {option.name} · {shortMoney(option.priceCents)}
                                         </button>
@@ -135,7 +135,7 @@ export default function ArmarCaja({ categories, flavors, boxes, selectedBox, pre
 
                         <fieldset>
                             <legend className="sr-only">Sabores de la caja</legend>
-                            {available.length === 0 && <p className="bg-surface p-6 text-body">Esta caja todavía no tiene sabores disponibles.</p>}
+                            {available.length === 0 && <p className="bg-surface p-6 text-body rounded-2xl">Esta caja todavía no tiene sabores disponibles.</p>}
                             <div className="space-y-10">
                                 {groups.map((group) => (
                                     <div key={group.category?.id ?? 'todos'}>
@@ -146,10 +146,10 @@ export default function ArmarCaja({ categories, flavors, boxes, selectedBox, pre
                                                 return (
                                                     <li key={flavor.id} className="card flex items-center gap-4 p-3 pr-4">
                                                         {flavor.image ? (
-                                                            <img src={flavor.image} alt="" className="size-16 shrink-0 rounded-full object-cover" />
+                                                            <img src={flavor.image} alt="" className="size-16 shrink-0 object-cover rounded-xl" />
                                                         ) : (
                                                             <span
-                                                                className="flex size-16 shrink-0 items-center justify-center rounded-full bg-kraft text-lead font-extrabold text-ground"
+                                                                className="flex size-16 shrink-0 items-center justify-center bg-honey text-lead font-extrabold text-ground rounded-xl"
                                                                 aria-hidden="true"
                                                             >
                                                                 {flavor.name.charAt(0)}
@@ -177,7 +177,7 @@ export default function ArmarCaja({ categories, flavors, boxes, selectedBox, pre
                     </div>
 
                     <aside className="lg:sticky lg:top-6">
-                        <div className="bg-kraft p-4">
+                        <div className="bg-honey p-4 rounded-2xl">
                             <ul className="grid gap-2" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }} aria-label="Tu caja">
                                 {Array.from({ length: size }, (_, i) => {
                                     const flavor = slots[i];
@@ -188,14 +188,14 @@ export default function ArmarCaja({ categories, flavors, boxes, selectedBox, pre
                                                     key={`${flavor.id}-${i}`}
                                                     src={flavor.image}
                                                     alt={flavor.name}
-                                                    className="roll-in size-full rounded-full object-cover [--roll-index:0]"
+                                                    className="roll-in size-full object-cover [--roll-index:0] rounded-2xl"
                                                 />
                                             ) : flavor ? (
-                                                <span className="roll-in flex size-full items-center justify-center rounded-full bg-ink p-1 text-center text-small font-bold text-ground [--roll-index:0]">
+                                                <span className="roll-in flex size-full items-center justify-center bg-ink p-1 text-center text-small font-bold text-ground [--roll-index:0] rounded-2xl">
                                                     {flavor.name}
                                                 </span>
                                             ) : (
-                                                <span className="flex size-full items-center justify-center rounded-full bg-ground/25 text-2xl text-ground" aria-label="Espacio libre">
+                                                <span className="flex size-full items-center justify-center bg-ground/25 text-2xl text-ground" aria-label="Espacio libre">
                                                     +
                                                 </span>
                                             )}

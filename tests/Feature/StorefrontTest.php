@@ -19,7 +19,7 @@ class StorefrontTest extends TestCase
 
     public function test_public_pages_load(): void
     {
-        foreach (['/', '/armar-caja', '/carrito', '/seguir', '/terminos', '/privacidad'] as $url) {
+        foreach (['/', '/armar-caja', '/carrito', '/seguir', '/nosotros', '/terminos', '/privacidad'] as $url) {
             $this->get($url)->assertOk();
         }
     }

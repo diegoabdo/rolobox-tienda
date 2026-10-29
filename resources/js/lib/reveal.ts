@@ -17,7 +17,7 @@ export function useReveal(key: string) {
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
+                    if (!entry.isIntersecting && entry.boundingClientRect.top >= 0) return;
                     entry.target.setAttribute('data-revealed', '');
                     observer.unobserve(entry.target);
                 });

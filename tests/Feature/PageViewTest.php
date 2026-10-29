@@ -61,8 +61,11 @@ class PageViewTest extends TestCase
     public function test_bots_admins_partial_reloads_and_prefetches_are_not_counted(): void
     {
         $this->withHeaders(['User-Agent' => 'Googlebot/2.1'])->get('/')->assertOk();
+        $this->flushHeaders();
         $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Partial-Component' => 'Home', 'X-Inertia-Partial-Data' => 'promotion'])->get('/');
+        $this->flushHeaders();
         $this->withHeaders(['Purpose' => 'prefetch'])->get('/');
+        $this->flushHeaders();
         $this->actingAs(User::factory()->create())->get('/')->assertOk();
 
         $this->assertSame(0, PageView::count());
@@ -79,6 +82,7 @@ class PageViewTest extends TestCase
     public function test_the_dashboard_shows_the_visit_widgets(): void
     {
         $this->get('/');
+        $this->flushHeaders();
         $this->actingAs(User::factory()->create());
 
         $this->get('/admin')->assertOk();

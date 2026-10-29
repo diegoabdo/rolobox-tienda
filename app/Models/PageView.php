@@ -19,6 +19,7 @@ class PageView extends Model
     public const PAGES = [
         'home' => 'Inicio',
         'box' => 'Arma tu caja',
+        'about' => 'Nosotros',
         'cart.show' => 'Carrito',
         'checkout.show' => 'Pagar pedido',
         'orders.show' => 'Estado del pedido',

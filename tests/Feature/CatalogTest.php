@@ -26,6 +26,12 @@ class CatalogTest extends TestCase
         return Product::where('slug', $slug)->firstOrFail();
     }
 
+    /** La caja mixta viene desactivada; las pruebas que la usan la publican como lo haría el admin. */
+    private function enableMixedBox(): void
+    {
+        $this->product('caja-mixta-de-seis')->update(['published' => true]);
+    }
+
     private function addSingle(string $productSlug, string $flavorSlug): void
     {
         $this->post('/carrito', [
@@ -41,7 +47,7 @@ class CatalogTest extends TestCase
             ->has('categories', 4)
             ->where('categories.0.name', 'Rolls de canela')
             ->has('flavors', 14)
-            ->has('products', 9));
+            ->has('products', 8));
     }
 
     public function test_a_hidden_category_disappears_from_the_store(): void
@@ -51,7 +57,7 @@ class CatalogTest extends TestCase
         $this->get('/')->assertInertia(fn (Assert $page) => $page
             ->has('categories', 3)
             ->has('flavors', 10)
-            ->has('products', 7));
+            ->has('products', 6));
     }
 
     public function test_a_single_product_adds_the_flavor_extra_to_its_price(): void
@@ -90,6 +96,8 @@ class CatalogTest extends TestCase
 
     public function test_a_mixed_box_takes_flavors_from_several_categories_but_only_those_marked_for_it(): void
     {
+        $this->enableMixedBox();
+
         $mixed = $this->product('caja-mixta-de-seis');
 
         $this->post('/carrito', ['product_id' => $mixed->id, 'flavors' => [
@@ -106,12 +114,16 @@ class CatalogTest extends TestCase
 
     public function test_a_box_needs_exactly_its_size_in_pieces(): void
     {
+        $this->enableMixedBox();
+
         $this->post('/carrito', ['product_id' => $this->product('caja-mixta-de-seis')->id, 'flavors' => [$this->flavor('canela-clasica')->id => 5]])
             ->assertSessionHasErrors('flavors');
     }
 
     public function test_a_cart_line_is_dropped_when_its_flavor_stops_being_accepted(): void
     {
+        $this->enableMixedBox();
+
         $this->post('/carrito', ['product_id' => $this->product('caja-mixta-de-seis')->id, 'flavors' => [
             $this->flavor('canela-clasica')->id => 3,
             $this->flavor('croissant-almendra')->id => 3,
@@ -129,10 +141,16 @@ class CatalogTest extends TestCase
         $this->get('/armar-caja?sabor=croissant-almendra')->assertInertia(fn (Assert $page) => $page
             ->component('ArmarCaja')
             ->where('selectedBox', 'caja-de-cuatro-croissants')
-            ->has('boxes', 3));
+            ->has('boxes', 2));
 
+        // Con la caja mixta desactivada, pedirla por su identificador abre la primera caja.
         $this->get('/armar-caja?caja=caja-mixta-de-seis')->assertInertia(fn (Assert $page) => $page
-            ->where('selectedBox', 'caja-mixta-de-seis'));
+            ->where('selectedBox', 'caja-de-seis'));
+
+        $this->enableMixedBox();
+        $this->get('/armar-caja?caja=caja-mixta-de-seis')->assertInertia(fn (Assert $page) => $page
+            ->where('selectedBox', 'caja-mixta-de-seis')
+            ->has('boxes', 3));
 
         // Una focaccia no entra en ninguna caja: abre la primera.
         $this->get('/armar-caja?sabor=focaccia-romero-y-sal')->assertInertia(fn (Assert $page) => $page
@@ -144,5 +162,17 @@ class CatalogTest extends TestCase
         $this->assertSame(0, Flavor::whereNull('category_id')->count());
         $this->assertTrue($this->product('rol-suelto')->accepts($this->flavor('chocolate')));
         $this->assertFalse($this->product('rol-suelto')->accepts($this->flavor('croissant-almendra')));
+    }
+
+    public function test_the_mixed_box_is_off_by_default_and_cannot_be_ordered(): void
+    {
+        $this->assertFalse($this->product('caja-mixta-de-seis')->published);
+
+        $this->post('/carrito', ['product_id' => $this->product('caja-mixta-de-seis')->id, 'flavors' => [
+            $this->flavor('canela-clasica')->id => 3,
+            $this->flavor('croissant-almendra')->id => 3,
+        ]])->assertSessionHasErrors('product');
+
+        $this->assertTrue(app(Cart::class)->isEmpty());
     }
 }

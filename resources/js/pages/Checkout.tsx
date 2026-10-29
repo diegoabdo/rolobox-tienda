@@ -62,9 +62,9 @@ function LineRolls({ line, images, size }: { line: CartLine; images: Props['flav
             {rolls.map((flavor, i) => (
                 <li key={`${flavor.id}-${i}`} className={circle}>
                     {images[flavor.id] ? (
-                        <img src={images[flavor.id] ?? ''} alt={flavor.name} className="size-full rounded-full object-cover" />
+                        <img src={images[flavor.id] ?? ''} alt={flavor.name} className="size-full object-cover rounded-2xl" />
                     ) : (
-                        <span className="flex size-full items-center justify-center rounded-full bg-ground p-1 text-center text-small text-ink" title={flavor.name}>
+                        <span className="flex size-full items-center justify-center rounded-xl bg-ground/15 p-1 text-center text-small font-medium text-ground" title={flavor.name}>
                             {size === 'lg' ? flavor.name : ''}
                         </span>
                     )}
@@ -76,7 +76,7 @@ function LineRolls({ line, images, size }: { line: CartLine; images: Props['flav
 
 function Step({ id, title, intro, children }: { id: string; title: string; intro?: string; children: ReactNode }) {
     return (
-        <section aria-labelledby={id} className="min-w-0">
+        <section aria-labelledby={id} className="min-w-0 rounded-3xl bg-surface p-6 sm:p-10">
             <h2 id={id} className="display text-[clamp(34px,3.2vw,48px)]">
                 {title}
             </h2>
@@ -158,11 +158,11 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
 
                 <form onSubmit={submit} noValidate className="mt-6 grid grid-cols-1 items-start gap-x-16 gap-y-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]">
                     <div className="min-w-0">
-                        <h1 className="display text-[clamp(52px,6vw,96px)]">Tu pedido</h1>
+                        <h1 className="display text-[clamp(36px,4.4vw,68px)]">Tu pedido</h1>
                         <p className="mt-6 max-w-[40ch] text-lead leading-snug">Tres preguntas y lo horneamos para el día que elijas.</p>
 
                         {/* En el teléfono, la caja va arriba en pequeño; el ticket completo con el pago va al final. */}
-                        <a href="#ticket" className="mt-8 flex items-center gap-4 bg-kraft p-4 text-ground lg:hidden">
+                        <a href="#ticket" className="mt-8 flex items-center gap-4 bg-honey p-4 text-ground lg:hidden rounded-2xl">
                             <span className="min-w-0 flex-1 space-y-2">
                                 {cart.lines.map((line) => (
                                     <LineRolls key={line.key} line={line} images={flavorImages} size="sm" />
@@ -174,7 +174,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                             </span>
                         </a>
 
-                        <div className="mt-20 space-y-24">
+                        <div className="mt-10 space-y-3">
                             <Step id="entrega" title="¿Dónde lo entregamos?" intro="El envío se suma según tu zona. Horneamos para el día y el horario que elijas.">
                                 {hasNational && (
                                     <div role="radiogroup" aria-label="Tipo de entrega" className="mb-8 grid grid-cols-2 gap-3">
@@ -196,7 +196,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                                     </div>
                                 )}
                                 {nationalBlocked && (
-                                    <p className="mb-8 max-w-[56ch] bg-surface p-5 text-body">
+                                    <p className="mb-8 max-w-[56ch] bg-surface p-5 text-body rounded-2xl">
                                         Al resto del país enviamos solo sabores que aguantan el viaje, y tu caja incluye algunos que no.
                                     </p>
                                 )}
@@ -207,7 +207,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                                         {zoneList.map((zone) => {
                                             const selected = form.data.zone_id === zone.id;
                                             return (
-                                                <label key={zone.id} className={`flex min-h-16 flex-col justify-center rounded-full px-5 ${CHOICE} ${choiceTone(selected)}`}>
+                                                <label key={zone.id} className={`flex min-h-16 flex-col justify-center px-5 ${CHOICE} ${choiceTone(selected)}`}>
                                                     <input
                                                         type="radio"
                                                         name="zone_id"
@@ -265,7 +265,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                                                     return (
                                                         <label
                                                             key={d.date}
-                                                            className={`flex aspect-square flex-col items-center justify-center rounded-full text-center ${CHOICE} ${choiceTone(selected)}`}
+                                                            className={`flex aspect-square flex-col items-center justify-center text-center ${CHOICE} ${choiceTone(selected)}`}
                                                         >
                                                             <input
                                                                 type="radio"
@@ -300,7 +300,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                                                     return (
                                                         <label
                                                             key={s.value}
-                                                            className={`flex min-h-14 items-center justify-center rounded-full px-4 text-body font-semibold ${CHOICE} ${choiceTone(selected)}`}
+                                                            className={`flex min-h-14 items-center justify-center px-4 text-body font-semibold ${CHOICE} ${choiceTone(selected)}`}
                                                         >
                                                             <input
                                                                 type="radio"
@@ -417,7 +417,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                     </div>
 
                     <aside id="ticket" className="min-w-0 scroll-mt-6 lg:sticky lg:top-6" aria-labelledby="ticket-titulo">
-                        <div className="bg-kraft text-ground">
+                        <div className="overflow-clip rounded-3xl bg-honey text-ground">
                             <div className="p-6 sm:p-8">
                                 <h2 id="ticket-titulo" className="display text-[clamp(34px,3.2vw,48px)]">
                                     {cart.lines.length === 1 && cart.lines[0].type === 'box' ? 'Tu caja' : 'Lo que llevas'}
@@ -461,7 +461,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                                 <div className="mt-2 flex gap-2">
                                     <input
                                         id="coupon"
-                                        className="min-h-12 min-w-0 flex-1 rounded-full bg-[#d6b48a] px-5 text-body font-bold tracking-[0.06em] text-ground uppercase focus:outline-3 focus:outline-ground"
+                                        className="min-h-12 min-w-0 flex-1 bg-[#d6b48a] px-5 text-body font-bold tracking-[0.06em] text-ground uppercase focus:outline-3 focus:outline-ground"
                                         value={coupon}
                                         onChange={(e) => setCoupon(e.target.value)}
                                         onKeyDown={(e) => {
@@ -472,7 +472,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
                                         }}
                                         maxLength={40}
                                     />
-                                    <button type="button" onClick={applyCoupon} className="btn bg-ground px-5 text-ink hover:bg-surface" disabled={quoting}>
+                                    <button type="button" onClick={applyCoupon} className="btn bg-ground px-5 text-ink hover:bg-surface rounded-2xl" disabled={quoting}>
                                         Aplicar
                                     </button>
                                 </div>
@@ -541,7 +541,7 @@ export default function Checkout({ cart, zones, nationalBlocked, dates, slots, q
 
                                 <button
                                     type="submit"
-                                    className="btn mt-6 min-h-16 w-full justify-between bg-ground px-7 text-lead text-ink hover:bg-surface"
+                                    className="btn mt-6 min-h-16 w-full justify-between bg-ground px-7 text-lead text-ink hover:bg-surface rounded-2xl"
                                     disabled={form.processing || quoting}
                                 >
                                     <span className="flex items-center gap-3">
